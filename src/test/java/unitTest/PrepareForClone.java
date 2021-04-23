@@ -12,7 +12,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
 
-import util.constantLanguageid;
+import com.omniscien.lslanguageid.util.constantLanguageid;
 
 public class PrepareForClone {
 	

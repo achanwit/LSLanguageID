@@ -1,4 +1,4 @@
-package util;
+package com.omniscien.lslanguageid.util;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -404,6 +404,10 @@ public class ProcessUtilLanguageid {
 
 			String[] arLine = (input).split("\n");
 			String[] arOutput = (output).split("\n");
+			for(int i = 0; i<arLine.length; i++) {
+				System.out.println("Result Array:["+i+"]"+arLine[i]);
+			}
+			
 			for (int i = 0; i < arLine.length; i++) {
 				String line = arLine[i];
 				if (bError)

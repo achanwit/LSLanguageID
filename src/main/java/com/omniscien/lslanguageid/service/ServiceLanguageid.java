@@ -1,4 +1,4 @@
-package service;
+package com.omniscien.lslanguageid.service;
 
 public interface ServiceLanguageid {
 	

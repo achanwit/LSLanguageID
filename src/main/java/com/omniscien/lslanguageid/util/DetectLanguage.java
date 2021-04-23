@@ -1,4 +1,4 @@
-package util;
+package com.omniscien.lslanguageid.util;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -2,7 +2,7 @@ package unitTest;
 
 import java.io.IOException;
 
-import LSLanguageid.LSLanguageid;
+import com.omniscien.lslanguageid.process.LSLanguageid;
 
 public class TestLiniByLine1_1 {
 	

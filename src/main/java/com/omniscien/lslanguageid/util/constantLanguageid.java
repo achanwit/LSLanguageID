@@ -1,4 +1,4 @@
-package util;
+package com.omniscien.lslanguageid.util;
 
 import java.io.File;
 

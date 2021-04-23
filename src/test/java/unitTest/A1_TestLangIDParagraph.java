@@ -1,6 +1,6 @@
 package unitTest;
 
-import LSLanguageid.LSLanguageid;
+import com.omniscien.lslanguageid.process.LSLanguageid;
 
 public class A1_TestLangIDParagraph {
 

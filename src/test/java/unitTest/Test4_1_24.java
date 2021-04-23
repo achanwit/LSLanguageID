@@ -3,7 +3,8 @@ package unitTest;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
-import LSLanguageid.LSLanguageid;
+
+import com.omniscien.lslanguageid.process.LSLanguageid;
 
 public class Test4_1_24 {	
 	static LSLanguageid instant;	

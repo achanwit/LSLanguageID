@@ -4,8 +4,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Scanner;
-import LSLanguageid.LSLanguageid;
-import util.ProcessUtilLanguageid;
+
+import com.omniscien.lslanguageid.process.LSLanguageid;
+import com.omniscien.lslanguageid.util.ProcessUtilLanguageid;
 
 public class Test7_1_24 {	
 	static LSLanguageid instant;	

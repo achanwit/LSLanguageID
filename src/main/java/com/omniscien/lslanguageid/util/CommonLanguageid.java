@@ -1,4 +1,4 @@
-package util;
+package com.omniscien.lslanguageid.util;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 
-import util.RemoveBadChars.Replacement;
+import com.omniscien.lslanguageid.util.RemoveBadChars.Replacement;
 
 
 

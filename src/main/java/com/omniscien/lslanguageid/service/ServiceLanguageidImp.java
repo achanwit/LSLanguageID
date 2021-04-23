@@ -1,13 +1,12 @@
-package service;
+package com.omniscien.lslanguageid.service;
 
 import java.io.File;
 import java.util.regex.Pattern;
 
-
-import util.ProcessUtilLanguageid;
-import util.ReadPropLanguageid;
-import util.constantLanguageid;
-import util.CommonLanguageid;
+import com.omniscien.lslanguageid.util.CommonLanguageid;
+import com.omniscien.lslanguageid.util.ProcessUtilLanguageid;
+import com.omniscien.lslanguageid.util.ReadPropLanguageid;
+import com.omniscien.lslanguageid.util.constantLanguageid;
 
 public class ServiceLanguageidImp implements ServiceLanguageid{
 	

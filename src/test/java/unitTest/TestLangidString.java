@@ -1,6 +1,6 @@
 package unitTest;
 
-import LSLanguageid.LSLanguageid;
+import com.omniscien.lslanguageid.process.LSLanguageid;
 
 public class TestLangidString {
 
@@ -11,6 +11,7 @@ public class TestLangidString {
 	public static void main(String[] args) {
 		String result ="";
 		LSLanguageid lsLangId = new LSLanguageid();
+		lsLangId.propertiesSetting("LanguageidConfig.properties");
 		String inputStr = "Vestibulum neque massa, scelerisque sit amet ligula eu, congue molestie mi.";
 		
 		try {

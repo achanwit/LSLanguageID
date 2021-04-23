@@ -1,4 +1,4 @@
-package LSLanguageid;
+package com.omniscien.lslanguageid.process;
 
 
 
@@ -20,6 +20,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 //import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -30,24 +31,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
-
-//import com.fasterxml.jackson.core.JsonProcessingException;
-//import com.fasterxml.jackson.databind.JsonMappingException;
-//import com.fasterxml.jackson.databind.JsonNode;
-//import com.fasterxml.jackson.databind.ObjectMapper;
-
-
-//import model.LanguageidRespond;
-//import okhttp3.MediaType;
-//import okhttp3.OkHttpClient;
-//import okhttp3.Request;
-//import okhttp3.Response;
-//import okhttp3.ResponseBody;
-import service.ServiceLanguageidImp;
-import util.ProcessUtilLanguageid;
-import util.ReadPropLanguageid;
-import util.constantLanguageid;
+import com.omniscien.lslanguageid.service.ServiceLanguageidImp;
+import com.omniscien.lslanguageid.util.ProcessUtilLanguageid;
+import com.omniscien.lslanguageid.util.ReadPropLanguageid;
+import com.omniscien.lslanguageid.util.constantLanguageid;
 
 public class LSLanguageid {
 	
@@ -55,6 +42,17 @@ public class LSLanguageid {
 	
 	Pattern opentTagP = Pattern.compile("^[<][p][ ][i][d][=][\\\"][p][i][d][\\d]{0,6}[\"][>]");
 	Pattern closeTagP = Pattern.compile("[<][\\/][p][>]");
+	
+	private List<String> fileTypeWordList = Arrays.asList(new String[]{
+			"doc","docx","dot","dotx","docm","odt","ott","rtf"});	
+	private List<String> fileTypeCellList = Arrays.asList(new String[]{
+			"xls","xlsx","xlsb","xlsm","xlt","xltx","xltm","xlsm","ods","csv","tsv"});	
+	private List<String> fileTypeEmailList = Arrays.asList(new String[]{
+			"msg", "pst", "ost", "oft", "olm","eml", "emlx", "mbox"});	
+	private List<String> fileTypeSlideList = Arrays.asList(new String[]{
+			"ppt","pot","pps", "pptx", "potx", "ppsx", "ppsm", "potm","otp","odp"});
+	private List<String> fileTypeOpenofficeList = Arrays.asList(new String[]{
+			"odt","ott","ods","odp","otp","odg","otg"});
 	
 	private ServiceLanguageidImp langService = new ServiceLanguageidImp();
 	
@@ -312,38 +310,52 @@ public class LSLanguageid {
 		//Initial result;
 		String result = null;
 		
-		//Prepare mode
-//		String modeStr = constant.CLD2_MODE;
+		//Check file type
+		String fileType = getFileType(filePath).toLowerCase();
 		
 		//Prepare Input 
-		String inputStr = new String();
-		
-		Reader inputString = new FileReader(filePath);
-	    BufferedReader br = new BufferedReader(inputString);  
-	    StringBuffer inputBuf = new StringBuffer();
-		
-		//Read file
-		try {
-			String sent = null;
-		      while ((sent = br.readLine()) != null){
-		    	  sent = findAndReplaceAll(opentTagP, "", sent);
-		    	  sent = findAndReplaceAll(closeTagP, "", sent);
-		    	  inputBuf.append(sent+" ");
-					if(inputBuf.length() > constantLanguageid.MAXIMUN_INPUT) {
-						break;
-					}	
-		      }		
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-
+		String inputStr = null;
+		StringBuffer inputBuf = null;
+		if (fileTypeWordList.contains(fileType)){
+			inputStr = getStringContentFromWordAspose(filePath);
+		}else if(fileTypeCellList.contains(fileType)) {
+			
+		}else if(fileTypeSlideList.contains(fileType)) {
+			
+		}else if(fileTypeEmailList.contains(fileType)) {
+			
+		}else if(fileType.equals("txt")) {
+			Reader inputString = new FileReader(filePath);
+		    BufferedReader br = new BufferedReader(inputString);  
+		    inputBuf = new StringBuffer();
+			
+			//Read file
 			try {
-				if (br != null)
-					br.close();
-			} catch (IOException ex) {
-				ex.printStackTrace();
+				String sent = null;
+			      while ((sent = br.readLine()) != null){
+			    	  sent = findAndReplaceAll(opentTagP, "", sent);
+			    	  sent = findAndReplaceAll(closeTagP, "", sent);
+			    	  inputBuf.append(sent+" ");
+						if(inputBuf.length() > constantLanguageid.MAXIMUN_INPUT) {
+							break;
+						}	
+			      }		
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+
+				try {
+					if (br != null)
+						br.close();
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
 			}
 		}
+		
+		
+		
+		
 		
 		
 		
@@ -358,6 +370,39 @@ public class LSLanguageid {
 		
 	}
 	
+	private String getStringContentFromWordAspose(String filePath) {
+		String output = "";
+		try {
+//			output = 
+		} catch (Exception e) {
+			throw e;
+		}
+		return output;
+	}
+
+	private String getContentStringFromFile() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	//Check 
+	private String getFileType(String filePath) {
+		
+		String fileType = null;
+		
+		//Get file name
+		String[] filpathArr = filePath.split("/");
+		int filpathArrLength = filpathArr.length;		
+		String fileName = filpathArr[filpathArrLength-1];
+		
+		//Get file type
+		String fileNameArr[] = fileName.split(".");
+		int fileNameArrLength = fileNameArr.length;
+		fileType = fileNameArr[fileNameArrLength-1];
+		
+		return fileType;
+	}
+
 	private String findAndReplaceAll(Pattern opentTagP2, String replace, String sent) {
 		// TODO Auto-generated method stub
 		 Matcher matcher = opentTagP2.matcher(sent);

@@ -1,4 +1,4 @@
-package model;
+package com.omniscien.lslanguageid.model;
 
 import java.util.Collection;
 

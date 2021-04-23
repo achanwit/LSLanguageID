@@ -3,7 +3,7 @@ package unitTest;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import LSLanguageid.LSLanguageid;
+import com.omniscien.lslanguageid.process.LSLanguageid;
 
 public class Test8_1_SRT {
 	
