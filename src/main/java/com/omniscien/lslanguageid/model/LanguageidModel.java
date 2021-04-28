@@ -1,6 +1,6 @@
 package com.omniscien.lslanguageid.model;
 
-public class Languageid {
+public class LanguageidModel {
 	
 	private String duration;
 	private String result;
@@ -10,6 +10,9 @@ public class Languageid {
 	private String secondarylanguage;
 	private String errortext;
 	private String startdate;
+	private String dominantLangPercent;
+	private String secondaryLangPercent;
+	
 	public String getDuration() {
 		return duration;
 	}
@@ -58,6 +61,19 @@ public class Languageid {
 	public void setStartdate(String startdate) {
 		this.startdate = startdate;
 	}
+	public String getDominantLangPercent() {
+		return dominantLangPercent;
+	}
+	public void setDominantLangPercent(String dominantLangPercent) {
+		this.dominantLangPercent = dominantLangPercent;
+	}
+	public String getSecondaryLangPercent() {
+		return secondaryLangPercent;
+	}
+	public void setSecondaryLangPercent(String secondaryLangPercent) {
+		this.secondaryLangPercent = secondaryLangPercent;
+	}
 
+	
 	
 }
