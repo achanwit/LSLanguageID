@@ -282,7 +282,7 @@ public class CommonLanguageid {
 		temp = temp.replace("\r\n", "\n").replace("\r", "\n");
 
 		// TODO: get config path
-		String configPath = constantLanguageid.CONFIG_PATH_CLEANBADCHARS;
+		String configPath = Constant.CONFIG_PATH_CLEANBADCHARS;
 		temp = RemoveBadChars(temp, configPath);
 
 		return temp;

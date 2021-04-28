@@ -6,16 +6,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class ReadPropLanguageid {
+public class ReadProp {
 	
 	private String propFilepath = "";
 	InputStream inputStream;
 
-	public ReadPropLanguageid() {
+	public ReadProp() {
 		// TODO Auto-generated constructor stub
 	}
 	
-	public ReadPropLanguageid(String propFilepath) {
+	public ReadProp(String propFilepath) {
 		this.propFilepath = propFilepath;
 	}
 	

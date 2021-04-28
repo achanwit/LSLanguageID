@@ -3,7 +3,7 @@ package com.omniscien.lslanguageid.util;
 import java.io.File;
 
 
-public class constantLanguageid {
+public class Constant {
 	
 	public static final String MEDIA_TYPE = "application/json; charset=utf-8";
 	
@@ -63,7 +63,7 @@ public class constantLanguageid {
 	
 	public static final String CLD2_MODE = "cld2";
 	
-	public static final int MAXIMUN_INPUT =50000;
+	public static final int MAXIMUN_INPUT =100000;
 	
 	public static final String ERROR_MSG_MAIXMUN_INPUT = "Status: 400 bad_request [Request header is too large because the input length is larger than the maximum acceptable value. Please reduce input to less than 1948 characters.]";
 	
@@ -96,4 +96,14 @@ public class constantLanguageid {
 	public static final String DECIMAL_FORMAT_TWO_DIGIT = "0.00";
 	
 	public static final String LANGUAGE_ID_LOAD_KEY = "AOLanguageIDLoaded";
+	
+	public static final String LOG_4J = "LOG_4J";
+	
+	public static final String LOG_PATH = "LOG_PATH";
+	
+	public static final String Resources_Path_Aspose = "ResourcesPathAspose";
+	
+	public static final String LicenseAspose = "LicenseAspose";
+	
+	public static final String PROCESS_TEMP_PATH = "PROCESS_TEMP_PATH";
 }

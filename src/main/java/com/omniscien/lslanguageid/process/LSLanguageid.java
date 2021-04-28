@@ -33,15 +33,27 @@ import java.util.regex.Pattern;
 
 import com.omniscien.lslanguageid.service.ServiceLanguageidImp;
 import com.omniscien.lslanguageid.util.ProcessUtilLanguageid;
-import com.omniscien.lslanguageid.util.ReadPropLanguageid;
-import com.omniscien.lslanguageid.util.constantLanguageid;
+import com.omniscien.lslanguageid.util.ReadProp;
+import com.omniscien.lslanguageid.util.Log4J;
+import com.omniscien.lslanguageid.model.LanguageidModel;
+import com.omniscien.lslanguageid.model.ServletContextMock;
+
+
+import LSFileSystemLocal.LSFileSystem;
+
+import com.omniscien.lslanguageid.util.Constant;
 
 public class LSLanguageid {
 	
-	ReadPropLanguageid rp= null;
+	private ReadProp rp= null;
+	private Log4J oLog = null;
+	private ServletContextMock app = new ServletContextMock();
+	private String pageName = "LSLanguageID";
 	
-	Pattern opentTagP = Pattern.compile("^[<][p][ ][i][d][=][\\\"][p][i][d][\\d]{0,6}[\"][>]");
-	Pattern closeTagP = Pattern.compile("[<][\\/][p][>]");
+	
+	
+	private Pattern opentTagP = Pattern.compile("^[<][p][ ][i][d][=][\\\"][p][i][d][\\d]{0,6}[\"][>]");
+	private Pattern closeTagP = Pattern.compile("[<][\\/][p][>]");
 	
 	private List<String> fileTypeWordList = Arrays.asList(new String[]{
 			"doc","docx","dot","dotx","docm","odt","ott","rtf"});	
@@ -54,13 +66,12 @@ public class LSLanguageid {
 	private List<String> fileTypeOpenofficeList = Arrays.asList(new String[]{
 			"odt","ott","ods","odp","otp","odg","otg"});
 	
+	
+	private List<String> fileTypeSupportList = Arrays.asList(new String[] {
+			"DOC", "DOCX", "XLS", "XLSX", "MSG", "PPT", "PPTX", "PDF", "HTML", "TXT"
+	});
+	
 	private ServiceLanguageidImp langService = new ServiceLanguageidImp();
-	
-	
-//	private String host = constant.HOST;
-//	private String port = constant.PORT;
-	
-	//public LSLanguageid instance;
 	
 	/*** Constructor ***/
 	public LSLanguageid() {
@@ -68,56 +79,26 @@ public class LSLanguageid {
 	}
 	
 	public void propertiesSetting(String filePath) {
-		rp = new ReadPropLanguageid(filePath);
+		rp = new ReadProp(filePath);
 		langService = new ServiceLanguageidImp();
-		langService.propSettingService(filePath);;
-		
-		
-}
+		langService.propSettingService(filePath);
+		if (oLog == null) {
+			try {
+				oLog = new Log4J();
+				oLog.Log4J(app, rp);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
-	/*** Provide instance ***/
-//	public LSLanguageid Init(String host, String port) {
-//		
-//		if(null == instance) {
-//			instance = getInstance(host, port);
-//		}
-//		return instance;	
-//	}
+			oLog.debugMode = true;
+			oLog.setDebugPath(rp.getProp(Constant.LOG_PATH));
+			oLog.log4JPropertyFile = rp.getProp(Constant.LOG_4J);
+		
+		}
+	}
 
-	/*** Set initial instance ***/
-//	private LSLanguageid getInstance(String hostStr, String portStr) {
-//		instance = new LSLanguageid();
-//		
-//
-//		//Setport
-//		if(portStr != null && !portStr.equals("")){
-//			instance.setPort(portStr);
-//		}else {
-//			instance.setPort(port);
-//		}
-//		//Set Host
-//		if(hostStr != null && !hostStr.equals("")){
-//			instance.setHost(hostStr);
-//		}else {
-//			instance.setHost(host);
-//		}
-//		
-//		return instance;
-//	}
-	
-	/*** Getter & Setter HOST:PORT ***/
-//	public String getHost() {
-//		return host;
-//	}
-//	public void setHost(String host) {
-//		this.host = host;
-//	}
-//	public String getPort() {
-//		return port;
-//	}
-//	public void setPort(String port) {
-//		this.port = port;
-//	}
+
 	
 	/*** Common method for get current date ***/
 	private String getCurrentDate() {
@@ -168,7 +149,7 @@ public class LSLanguageid {
 		FileWriter writer;
 		try {
 			writer = new FileWriter(file, true);
-			writer.write(result+constantLanguageid.NEW_LINE_RN);
+			writer.write(result+Constant.NEW_LINE_RN);
 			writer.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -186,8 +167,9 @@ public class LSLanguageid {
 	}
 	
 	/*** 1 General get the language id, used as a base of every method. 
+	 * @param languaeidModel 
 	 * @throws Exception ***/
-	public String GetLanguageIDGeneral(String idStr, String inputStr, String modeStr ) throws Exception {
+	public String GetLanguageIDGeneral(String idStr, String inputStr, String modeStr) throws Exception {
 		String result = "";
 		
 //		ServiceLanguageidImp langService = new ServiceLanguageidImp();
@@ -197,76 +179,14 @@ public class LSLanguageid {
 		return result;
 		
 	}
-//	public String GetLanguageIDGeneral(String idStr, String inputStr, String modeStr ) {
-//		
-//		int detectBSFlag = 0;
-//		
-//		String inputReplace = inputStr;
-//		String inputOriginal = inputStr;
-//		
-//		//Check length of input must <= 2048 charactor
-//		int inputLenght = inputStr.length();
-//		if(inputLenght > constant.MAXIMUN_INPUT) {
-//			return constant.ERROR_MSG_MAIXMUN_INPUT;
-//		}
-//		
-//		//Check backslash
-//		String[] splitInputBS = inputStr.split("\\\\");
-//		if(splitInputBS.length > 1) {
-//			//System.out.println("************** Split BS *****************");
-//			detectBSFlag = 1;
-//			inputReplace = inputReplace.replace("\\", "");
-//		}
-//		String[] splitInputBSDBC = inputStr.split("\"");
-//		if(splitInputBSDBC.length > 1) {
-//			//System.out.println("************** Split DBC *****************");
-//			detectBSFlag = 2;
-//			inputReplace = inputReplace.replace("\"", "");
-//		}
-//		
-//		String inputRequest = new String();
-//		if(detectBSFlag == 0) {
-//			inputRequest = inputOriginal;
-//		}else {
-//			inputRequest = inputReplace;
-//		}
-//		
-////		System.out.println("inputOriginal: "+inputOriginal);
-////		System.out.println("inputReplace: "+inputReplace);
-//		
-//		String resultStr = constant.EMPTY_STRING;
-//		OkHttpClient client = new OkHttpClient();
-//		Request request = new Request.Builder().header(constant.CONTENT_TYPE, constant.APPLICATION_JSON)
-//				              .url(constant.HTTP + host + constant.COLON + port 
-//				              +constant.LANGUAGE_LEVEL_PATH_1
-//				              +constant.LANGUAGE_LEVEL_PATH_2
-//				              +constant.START_RECEIVE_PARAM
-//				              +constant.PARAM_ID+idStr
-//				              +constant.PARAM_INPUT+inputRequest
-//				              +constant.PARAM_MODE+modeStr)
-//				              .get().build();
-//		LanguageidRespond responseMessage = null;
-//		try {
-//			Response response = client.newCall(request).execute();
-//			
-//			ResponseBody responseBody = response.body();
-//			String json = new String(responseBody.bytes());
-//			resultStr = json;
-//			
-//			if(detectBSFlag > 0) {
-//				resultStr = resultStr.replace(inputReplace, inputOriginal);
-//			}
-//		}catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//		
-//		
-//		return resultStr;
-//	}
+
 	
 	/*** 2 Set input as string only, by cld2 as default  
+	 * @param languaeidModel 
 	 * @throws Exception ***/
 	public String GetLanguageIDGeneral(String inputStr) throws Exception {
+		
+		LanguageidModel languaeidModel = new LanguageidModel();
 		
 		//Initial result;
 		String result = new String();
@@ -275,7 +195,7 @@ public class LSLanguageid {
 		String idStr = generateID();
 		
 		//Prepare mode
-		String modeStr = constantLanguageid.CLD2_MODE;
+		String modeStr = Constant.CLD2_MODE;
 		
 		//Set result by Call to GetLanguageIDGeneral(String idStr, String inputStr, String modeStr )
 		result = GetLanguageIDGeneral(idStr, inputStr, modeStr);
@@ -288,7 +208,7 @@ public class LSLanguageid {
 	/*** 3 Set input and cld value  
 	 * @throws Exception ***/
 	public String GetLanguageIDGeneral(String inputStr, String modeStr) throws Exception {
-		
+		LanguageidModel languaeidModel = new LanguageidModel();
 		//Initial result;
 		String result = new String();
 		
@@ -307,77 +227,115 @@ public class LSLanguageid {
 	 * @throws Exception ***/
 	public String GetLanguageIDGeneralFromFile(String filePath) throws Exception {
 		
-		//Initial result;
+		//Prepare Model Result
+		com.omniscien.lslanguageid.model.LanguageidModel languaeidModel = new com.omniscien.lslanguageid.model.LanguageidModel();
+		
+		String tempUUID = generateID();
+		oLog.WriteLog(pageName,tempUUID , "Get Language ID From File", "Start",  false);
+		//Initial Variable
 		String result = null;
-		
-		//Check file type
-		String fileType = getFileType(filePath).toLowerCase();
-		
-		//Prepare Input 
+		String outputProcessTemp = null;
+		Reader inputString = null;
+		boolean inputTypeTXT = true;
 		String inputStr = null;
 		StringBuffer inputBuf = null;
-		if (fileTypeWordList.contains(fileType)){
-			inputStr = getStringContentFromWordAspose(filePath);
-		}else if(fileTypeCellList.contains(fileType)) {
+		
+		//Get file type
+		String fileType = getFileType(filePath).toUpperCase();
+		oLog.WriteLog(pageName,tempUUID , "Get file Type as "+fileType,"", false);
+		
+		//Prepare Input String 
+		if (!fileType.equals("TXT")){
+			inputTypeTXT = false;
+			//Prepare output file part
+			String inputFileName = getFileName(filePath); 
 			
-		}else if(fileTypeSlideList.contains(fileType)) {
+			outputProcessTemp = rp.getProp(Constant.PROCESS_TEMP_PATH)+tempUUID+inputFileName+".txt";
 			
-		}else if(fileTypeEmailList.contains(fileType)) {
+			LSFileSystem lsFile = new LSFileSystem(null);
+			lsFile.File.Convert.FileType(
+					//inputFilePath
+					filePath, 
+					//OutputFilePath
+					outputProcessTemp, 
+					//FileFormat
+					fileType, 
+					//OutputFileFormat
+					"TXT");
 			
-		}else if(fileType.equals("txt")) {
-			Reader inputString = new FileReader(filePath);
-		    BufferedReader br = new BufferedReader(inputString);  
-		    inputBuf = new StringBuffer();
-			
-			//Read file
-			try {
-				String sent = null;
-			      while ((sent = br.readLine()) != null){
-			    	  sent = findAndReplaceAll(opentTagP, "", sent);
-			    	  sent = findAndReplaceAll(closeTagP, "", sent);
-			    	  inputBuf.append(sent+" ");
-						if(inputBuf.length() > constantLanguageid.MAXIMUN_INPUT) {
-							break;
-						}	
-			      }		
-			} catch (IOException e) {
-				e.printStackTrace();
-			} finally {
+			boolean checkSupport = new File(outputProcessTemp).exists();
+			if(!checkSupport) {
+				System.out.println("Can not support file type: *."+fileType.toLowerCase());
+				oLog.WriteLog(pageName,tempUUID , "Wernning Get Language ID From File", "Can not support file type: *."+fileType.toLowerCase(),  false);
+				oLog.WriteLog(pageName,tempUUID ,  "Get Language ID From File", "End AbNormally", false);
+				return "Can not support file type: *."+fileType.toLowerCase();
+			}
+			inputString = new FileReader(outputProcessTemp);
+		}else {
+			inputString = new FileReader(filePath);
+		}
+		
+		BufferedReader br = new BufferedReader(inputString);  
+	    inputBuf = new StringBuffer();
+		
+		//Read file
+		try {
+			String sent = null;
+		      while ((sent = br.readLine()) != null){
+		    	  sent = findAndReplaceAll(opentTagP, "", sent);
+		    	  sent = findAndReplaceAll(closeTagP, "", sent);
+		    	  inputBuf.append(sent+" ").append("\n");
+//					if(inputBuf.length() > Constant.MAXIMUN_INPUT) {
+//						break;
+//					}	
+		      }		
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
 
-				try {
-					if (br != null)
-						br.close();
-				} catch (IOException ex) {
-					ex.printStackTrace();
-				}
+			try {
+				if (br != null)
+					br.close();
+			} catch (IOException ex) {
+				ex.printStackTrace();
 			}
 		}
 		
-		
-		
-		
-		
-		
-		
-
+		//Convert source to string
 		inputStr = inputBuf.toString();
-
-		//result = langService.LanguageidFromFileForCLD2(filePath);
-		
-		//return result
+	
+		//get Language id
 		result = GetLanguageIDGeneral(inputStr);
+		
+		//If input not TXT will delete file temp
+		if(!inputTypeTXT) {
+			deleteFile(outputProcessTemp);
+		}
+		
+		oLog.WriteLog(pageName,tempUUID , "Get Language ID From File", "End Normally",  false);
+		//Return result;
 		return result;
 		
 	}
-	
-	private String getStringContentFromWordAspose(String filePath) {
-		String output = "";
-		try {
-//			output = 
-		} catch (Exception e) {
-			throw e;
-		}
-		return output;
+
+	private void deleteFile(String outputProcessTemp) {
+		File deletefilaPath = new File(outputProcessTemp);
+		 if (deletefilaPath.delete()) { 
+//		      System.out.println("Deleted the file: " + deletefilaPath.getName());
+		    } else {
+//		      System.out.println("Failed to delete the file.");
+		    } 
+		
+	}
+
+	private String getFileName(String filePath) {
+//		String filePathArr[] = filePath.split("/");
+//		int lengthOffilePathArr = filePathArr.length;
+//		
+//		return filePathArr[lengthOffilePathArr-1];
+		File inputFilePath = new File(filePath);
+		String filename = inputFilePath.getName();
+		return filename;
 	}
 
 	private String getContentStringFromFile() {
@@ -390,13 +348,12 @@ public class LSLanguageid {
 		
 		String fileType = null;
 		
-		//Get file name
-		String[] filpathArr = filePath.split("/");
-		int filpathArrLength = filpathArr.length;		
-		String fileName = filpathArr[filpathArrLength-1];
+
+		
+		String fileName = getFileName(filePath);
 		
 		//Get file type
-		String fileNameArr[] = fileName.split(".");
+		String fileNameArr[] = fileName.split("\\.");
 		int fileNameArrLength = fileNameArr.length;
 		fileType = fileNameArr[fileNameArrLength-1];
 		
@@ -412,9 +369,17 @@ public class LSLanguageid {
 	/*** 5 Set input as filePart and cld value 
 	 * @throws Exception ***/
 	public String GetLanguageIDGeneralFromFile(String filePath, String modeStr) throws Exception {
+		//Prepare Model Result
+		com.omniscien.lslanguageid.model.LanguageidModel languaeidModel = new com.omniscien.lslanguageid.model.LanguageidModel();
 		
-		//Initial result;
+		String tempUUID = generateID();
+		oLog.WriteLog(pageName,tempUUID , "Get Language ID From File", "Start",  false);
+		
+		//Initial variable;
 		String result = new String();
+		Reader inputString = null;
+		boolean inputTypeTXT = true;
+		String outputProcessTemp = null;
 		
 		//Prepare id
 		String idStr = generateID();
@@ -422,15 +387,46 @@ public class LSLanguageid {
 		//Prepare Input 
 		String inputStr = new String();
 		
-		//Read file
-		Reader inputString = new FileReader(filePath);
+		//Get file type
+		String fileType = getFileType(filePath).toUpperCase();
+		oLog.WriteLog(pageName,tempUUID , "Get file Type as "+fileType,"", false);
+		
+		if (!fileType.equals("TXT")){
+			inputTypeTXT = false;
+			//Prepare output file part
+			String inputFileName = getFileName(filePath); 
+			
+			outputProcessTemp = rp.getProp(Constant.PROCESS_TEMP_PATH)+tempUUID+inputFileName+".txt";
+			
+			LSFileSystem lsFile = new LSFileSystem(null);
+			lsFile.File.Convert.FileType(
+					//inputFilePath
+					filePath, 
+					//OutputFilePath
+					outputProcessTemp, 
+					//FileFormat
+					fileType, 
+					//OutputFileFormat
+					"TXT");
+			boolean checkSupport = new File(outputProcessTemp).exists();
+			if(!checkSupport) {
+				System.out.println("Can not support file type: *."+fileType.toLowerCase());
+				oLog.WriteLog(pageName,tempUUID , "Wernning Get Language ID From File", "Can not support file type: *."+fileType.toLowerCase(),  false);
+				oLog.WriteLog(pageName,tempUUID ,  "Get Language ID From File", "End AbNormally", false);
+				return "Can not support file type: *."+fileType.toLowerCase();
+			}
+			inputString = new FileReader(outputProcessTemp);
+		}else {
+			inputString = new FileReader(filePath);
+		}
+		
 	    BufferedReader br = new BufferedReader(inputString);  
 	    StringBuffer inputBuf = new StringBuffer();
 		try {
 			String sent = null;
 		      while ((sent = br.readLine()) != null){
 		    	  inputBuf.append(sent);
-					if(inputBuf.length() > constantLanguageid.MAXIMUN_INPUT-1100) {
+					if(inputBuf.length() > Constant.MAXIMUN_INPUT) {
 						break;
 					}	
 		      }		
@@ -463,36 +459,89 @@ public class LSLanguageid {
 		//Set result by Call to GetLanguageIDGeneral(String idStr, String inputStr, String modeStr )
 		result = GetLanguageIDGeneral(idStr, inputStr, modeStr);
 		
+		// If input not TXT will delete file temp
+		if (!inputTypeTXT) {
+			deleteFile(outputProcessTemp);
+		}
+		
+		oLog.WriteLog(pageName,tempUUID , "Get Language ID From File", "End Normally",  false);
+		
 		//return result
 		return result;
 		
 	}
 	
-//	public String GetLanguageIDLineByLineV2(String idStr, String inputFilePath, String outFilePath,  String mode) throws Exception {
-//		String result = "";
-//		
-//		ServiceLanguageidImp langService = new ServiceLanguageidImp();
-//		
-//		String rawResult = langService.LanguageID(idStr, inputFilePath, "cld2" , true);
-//		writeLineinFile(rawResult, null, new File(outFilePath));
-//		
-//		return result;
-//		
-//	}
-	
 	/*** 6 Get language id line by line general, used as a base of all line by line method 
 	 * @throws Exception ***/
 	public String GetLanguageIDLineByLine(String idStr, String inputFilePath, String outFilePath,  String mode) throws Exception{
+		//Prepare Model Result
+				com.omniscien.lslanguageid.model.LanguageidModel languaeidModel = new com.omniscien.lslanguageid.model.LanguageidModel();
+		String tempUUID = null;
+		if(idStr == null || idStr.equals("")) {
+			tempUUID = generateID();
+		}else {
+			tempUUID = idStr;
+		}
+		
+		oLog.WriteLog(pageName,tempUUID , "Get Language ID Line By Line", "Start",  false);
+		
 		String resultStatus = null;
 		String result = null;
 		int totalLines = 0;
+		boolean inputTypeTXT = true;
+		String outputProcessTemp = null;
+		BufferedReader readerBuf = null;
+		FileInputStream inputString = null;
+		Reader fileReaderCLD3 = null;
+		
+		mode = mode.toLowerCase();
+		
+		String fileType = getFileType(inputFilePath).toUpperCase();
+		oLog.WriteLog(pageName,tempUUID , "Get file Type as "+fileType,"", false);
+		if (!fileType.equals("TXT")){
+			inputTypeTXT = false;
+			//Prepare output file part
+			String inputFileName = getFileName(inputFilePath); 
+			
+			outputProcessTemp = rp.getProp(Constant.PROCESS_TEMP_PATH)+tempUUID+inputFileName+".txt";
+			
+			LSFileSystem lsFile = new LSFileSystem(null);
+			lsFile.File.Convert.FileType(
+					//inputFilePath
+					inputFilePath, 
+					//OutputFilePath
+					outputProcessTemp, 
+					//FileFormat
+					fileType, 
+					//OutputFileFormat
+					"TXT");
+			boolean checkSupport = new File(outputProcessTemp).exists();
+			if(!checkSupport) {
+				System.out.println("Can not support file type: *."+fileType.toLowerCase());
+				oLog.WriteLog(pageName,tempUUID , "Wernning Get Language ID Line By Line", "Cannot support file type: *."+fileType.toLowerCase(),  false);
+				oLog.WriteLog(pageName,tempUUID ,  "Get Language ID Line By Line", "End AbNormally", false);
+				return "Can not support file type: *."+fileType.toLowerCase();
+			}
+			readerBuf = new BufferedReader(new FileReader(outputProcessTemp));
+			inputString = new FileInputStream(outputProcessTemp);
+			fileReaderCLD3 = new FileReader(outputProcessTemp);
+			if(!mode.equals("cld3")) {
+				result = langService.LanguageidFromFileForCLD2(outputProcessTemp);	
+			}
+		}else {
+			readerBuf = new BufferedReader(new FileReader(inputFilePath));
+			inputString = new FileInputStream(inputFilePath);
+			fileReaderCLD3 = new FileReader(inputFilePath);
+			if(!mode.equals("cld3")) {
+				result = langService.LanguageidFromFileForCLD2(inputFilePath);	
+			}
+		}
 		
 		
-		//System.out.println("Mode: "+mode.toUpperCase());
 		if(!mode.toUpperCase().equals("CLD3")) {
 			
 			//Read total line number
-			BufferedReader readerBuf = new BufferedReader(new FileReader(inputFilePath));
+//			BufferedReader readerBuf = new BufferedReader(new FileReader(inputFilePath));
 			
 			while(readerBuf.readLine() != null) {
 				totalLines++;
@@ -501,12 +550,12 @@ public class LSLanguageid {
 			readerBuf.close();
 			
 			//Process Big Data
-			if(totalLines > constantLanguageid.MAX_LINE) {
+			if(totalLines > Constant.MAX_LINE) {
 				
 				//Read file
 			    StringBuffer inputBuf = new StringBuffer();
 				
-				FileInputStream inputString = new FileInputStream(inputFilePath);
+//				FileInputStream inputString = new FileInputStream(inputFilePath);
 				DataInputStream in = new DataInputStream(inputString);
 				BufferedReader br = new BufferedReader(new InputStreamReader(in));
 				
@@ -548,7 +597,7 @@ public class LSLanguageid {
 				    	  inputBuf.append(line).append("\n");
 				    	  
 				    	  	//Process Separate temp file to get language id
-							if(countLineCondition > constantLanguageid.MAX_LINE) {
+							if(countLineCondition > Constant.MAX_LINE) {
 								inputWriteToTempFile = new String(inputBuf);
 								String inputpathTemp = getFileTemp();
 								
@@ -654,7 +703,7 @@ public class LSLanguageid {
 				
 		//	System.out.println("Total line: "+totalLines);
 			
-			result = langService.LanguageidFromFileForCLD2(inputFilePath);
+//			result = langService.LanguageidFromFileForCLD2(inputFilePath);
 			String[] arrayResult = result.split("\n");
 //			int totalLines = arrayResult.length;
 //			System.out.println("Total line: "+totalLines);
@@ -742,7 +791,7 @@ public class LSLanguageid {
 			}	
 		}else {
 			//Read total line number
-			BufferedReader readerBuf = new BufferedReader(new FileReader(inputFilePath));
+//			BufferedReader readerBuf = new BufferedReader(new FileReader(inputFilePath));
 			totalLines = 0;
 			while(readerBuf.readLine() != null) {
 				totalLines++;
@@ -780,12 +829,9 @@ public class LSLanguageid {
 			String chunkStringForWriteFile = new String();
 			
 			//Prepare get input
-			resultStatus = constantLanguageid.EMPTY_STRING;
-			Reader file = new FileReader(inputFilePath);
-//			Scanner reader = new Scanner(file);	
-			
-			//Reader inputString = new StringReader(inputFilePath);
-		    BufferedReader br = new BufferedReader(file);  
+			resultStatus = Constant.EMPTY_STRING;
+
+		    BufferedReader br = new BufferedReader(fileReaderCLD3);  
 		    StringBuffer inputBuf = new StringBuffer();
 			try {
 				String sent = null;
@@ -793,68 +839,21 @@ public class LSLanguageid {
 			      while ((sent = br.readLine()) != null){
 			    	  progress++;
 			    	  countForWriteFile++;
-			    	  String rawResult = GetLanguageIDGeneral(constantLanguageid.EMPTY_STRING, sent, mode);
+			    	  String rawResult = GetLanguageIDGeneral(Constant.EMPTY_STRING, sent, mode);
 			    	//  TimeUnit.MILLISECONDS.sleep(1);
 			    	  
-			    	  String[] rawResultArr = rawResult.split(constantLanguageid.COLON);
+			    	  String[] rawResultArr = rawResult.split(Constant.COLON);
 						
-						result = rawResultArr[0]+constantLanguageid.COLON+rawResultArr[1].replace("\\t", constantLanguageid.TAB);
+						result = rawResultArr[0]+Constant.COLON+rawResultArr[1].replace("\\t", Constant.TAB);
 						
-						result = result.replace(constantLanguageid.REPLACE_ERROR_NO, constantLanguageid.EMPTY_STRING);
-						//int resulrLength = result.length();
-						//StringBuilder resultStrBu = new StringBuilder(result);
-						//resultStrBu.setCharAt(0, ' ');
-						//resultStrBu.setCharAt(resulrLength-1, ' ');
-						
-						//result = new String(resultStrBu);
-						
-						
-						//result = result.replace(constant.DOUBLE_QUOTE, constant.EMPTY_STRING);
-						
-						if(result.trim().equals(constantLanguageid.DETECT_UNKNOW)) {
-							result = constantLanguageid.UNKNOW_RESULT+constantLanguageid.TAB+sent;
+						result = result.replace(Constant.REPLACE_ERROR_NO, Constant.EMPTY_STRING);
+
+						if(result.trim().equals(Constant.DETECT_UNKNOW)) {
+							result = Constant.UNKNOW_RESULT+Constant.TAB+sent;
 						}
 
-//						if(countForWriteFile <= 100000) {
-//							chunkBufferStringForWriteFile = chunkBufferStringForWriteFile.append(result).append(constant.NEW_LINE_N);
-//						}else {
-//							
-//							chunkStringForWriteFile = new String(chunkBufferStringForWriteFile);
-//							chunkBufferStringForWriteFile = new StringBuffer();
-//							countForWriteFile = 0;
-//							
-//							//writ result on a file
-//							writeFile(sent, chunkStringForWriteFile.trim(), outFilePath);
-//							chunkStringForWriteFile = new String();
-//							//TimeUnit.SECONDS.sleep(3);
-//						}
-						writeFile(sent, result.trim(), outFilePath);
-//						System.out.println("Result: "+result.trim());
-//						if(progress == 600000) {
-//							System.out.println("Sleep");
-//							TimeUnit.SECONDS.sleep(10);
-//						}
-//						if(progress == 1200000) {
-//							TimeUnit.SECONDS.sleep(10);
-//						}
-//						if(progress == 1800000) {
-//							TimeUnit.SECONDS.sleep(10);
-//						}
-//						if(progress == 2400000) {
-//							TimeUnit.SECONDS.sleep(10);
-//						}
-//						if(progress == 3000000) {
-//							TimeUnit.SECONDS.sleep(10);
-//						}
-//						if(progress == 3600000) {
-//							TimeUnit.SECONDS.sleep(10);
-//						}
-						
-						
-						
-//						System.out.println("Line: "+progress);
-//						System.out.println("result: "+result);
-					
+
+						writeFile(sent, result.trim(), outFilePath);		
 						
 						//Display log every 10% completed
 						if(progress == 1) {
@@ -917,14 +916,18 @@ public class LSLanguageid {
 			}
 		}
 		
+		// If input not TXT will delete file temp
+		if (!inputTypeTXT) {
+			deleteFile(outputProcessTemp);
+		}
 		
-	
+		oLog.WriteLog(pageName,tempUUID , "Get Language ID Line By Line", "End Normally",  false);
 		
 		return resultStatus;
 	}
 	
 	private String getFileTemp() {
-		String sTempPath = rp.getProp(constantLanguageid.TEMP_PATH)+ "/temp";
+		String sTempPath = rp.getProp(Constant.TEMP_PATH)+ "/temp";
 		File fTemp = new File(sTempPath);
 		if (!fTemp.exists()) fTemp.mkdirs();
 		String id = UUID.randomUUID().toString();
@@ -945,7 +948,7 @@ public class LSLanguageid {
 		String idStr = generateID();
 		
 		//Prepare mode
-		String modeStr = constantLanguageid.EMPTY_STRING;
+		String modeStr = Constant.EMPTY_STRING;
 		
 		//Process language id
 		String resultStatus = GetLanguageIDLineByLine(idStr, inputFilePath, outFilePath, modeStr);
@@ -973,6 +976,7 @@ public class LSLanguageid {
 	/*** 9 Get Language id for SRT file By set mode parameter 
 	 * @throws Exception ***/
 	public String GetLanguageIDSRTFile(String inputFilePath, String modeStr) throws Exception {
+		com.omniscien.lslanguageid.model.LanguageidModel languaeidModel = new com.omniscien.lslanguageid.model.LanguageidModel();
 		String result = null;
 		//Get Total line
 		int totalLines = 0;
@@ -982,102 +986,7 @@ public class LSLanguageid {
 		}
 		readerBuf.close();
 		
-	//	if(!modeStr.toUpperCase().contentEquals("CLD3")) {
-			//Preapre subtitelCount
-//			 int subtitelCount = 0;
-//			
-//			//Prepare dialog Count
-//			int dialogCount = 0;
-//			
-//			result = new String();
-//			
-//			StringBuffer inputBuf = new StringBuffer();
-//			String input = new String();
-//			
-//			//String indexPattern = "[\\d]{1,5}[a-z]{0,2}[\\n]";
-//			String indexPattern = "[0-9]";
-//			String timeLinePattern = "^[\\d]{2}[:][\\d]{2}[:][\\d]{2}[,][\\d]{3}[ ][-][-][\\>][ ][\\d]{2}[:][\\d]{2}[:][\\d]{2}[,][\\d]{3}";
-//			
-//			//Prepare get input	
-////			Reader inputString = new StringReader(inputFilePath);
-//			FileInputStream inputString = new FileInputStream(inputFilePath);
-//			DataInputStream in = new DataInputStream(inputString);
-//			BufferedReader br1 = new BufferedReader(new InputStreamReader(in));
-//			
-//			try {
-//				String sent = null;
-//			      while ((sent = br1.readLine()) != null){
-//		
-//						int inputLength = sent.length();
-//						if(inputLength > 5) {
-//							if(sent.matches(timeLinePattern)) {
-//								subtitelCount++;
-//							}else{
-//								dialogCount++;
-//							}
-//						}
-//			      }		
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			} finally {
-//
-//				try {
-//					if (br1 != null)
-//						br1.close();
-//				} catch (IOException ex) {
-//					ex.printStackTrace();
-//				}
-//			}
-//			
-//			FileInputStream inputString2 = new FileInputStream(inputFilePath);
-//			DataInputStream in2 = new DataInputStream(inputString2);
-//			BufferedReader br2 = new BufferedReader(new InputStreamReader(in2));
-//			
-//			
-//			try {
-//				String sent = null;
-//			      while ((sent = br2.readLine()) != null){
-//		
-//			    	  int inputLength = sent.length();
-//			    	  
-//			    	  if(inputLength > 5) {
-//
-//							if(!sent.matches(timeLinePattern)) {
-//								inputBuf = inputBuf.append(sent).append(" ");
-//								if(inputBuf.length() > constant.MAXIMUN_INPUT-30) {
-//									break;
-//								}
-//							}
-//						}else if(inputLength != 0){
-//							String inputCheck = sent.substring(0, inputLength-1);
-//							try {
-//							int inputInt = Integer.parseInt(inputCheck);
-//							}catch(NumberFormatException e) {
-//								inputBuf = inputBuf.append(inputCheck).append(" ");
-//								if(inputBuf.length() > constant.MAXIMUN_INPUT-30) {
-//									break;
-//								}
-//							}
-//								
-//							
-//						}
-//			      }		
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			} finally {
-//
-//				try {
-//					if (br2 != null)
-//						br2.close();
-//				} catch (IOException ex) {
-//					ex.printStackTrace();
-//				}
-//			}
-//			
-//			input = new String(inputBuf);
-			
-			
-	//	}else {
+
 		
 		//Preapre subtitelCount
 		 int subtitelCount = 0;
@@ -1144,7 +1053,7 @@ public class LSLanguageid {
 
 						if(!sent.matches(timeLinePattern)) {
 							inputBuf = inputBuf.append(sent).append(" ");
-							if(inputBuf.length() > constantLanguageid.MAXIMUN_INPUT-30) {
+							if(inputBuf.length() > Constant.MAXIMUN_INPUT-30) {
 								break;
 							}
 						}
@@ -1154,7 +1063,7 @@ public class LSLanguageid {
 						int inputInt = Integer.parseInt(inputCheck);
 						}catch(NumberFormatException e) {
 							inputBuf = inputBuf.append(inputCheck).append(" ");
-							if(inputBuf.length() > constantLanguageid.MAXIMUN_INPUT-30) {
+							if(inputBuf.length() > Constant.MAXIMUN_INPUT-30) {
 								break;
 							}
 						}
@@ -1178,22 +1087,22 @@ public class LSLanguageid {
 
 		
 		result = GetLanguageIDGeneral(input, modeStr);
-		String[] resultArr = result.split(constantLanguageid.COLON);
+		String[] resultArr = result.split(Constant.COLON);
 		String[] resultPercentArr = resultArr[1].split("%");
 		String resultPercentStr = resultPercentArr[0]+"%";
 		
 		result = inputFilePath
-				+constantLanguageid.TAB
-				+totalLines+constantLanguageid.TAB
+				+Constant.TAB
+				+totalLines+Constant.TAB
 				+subtitelCount
-				+constantLanguageid.TAB
+				+Constant.TAB
 				+dialogCount
-				+constantLanguageid.TAB
-				+resultArr[0].replace(constantLanguageid.DOUBLE_QUOTE, constantLanguageid.EMPTY_STRING)
-				+constantLanguageid.COLON
+				+Constant.TAB
+				+resultArr[0].replace(Constant.DOUBLE_QUOTE, Constant.EMPTY_STRING)
+				+Constant.COLON
 				+resultPercentStr
-				+constantLanguageid.TAB
-				+resultArr[0].replace(constantLanguageid.DOUBLE_QUOTE, constantLanguageid.EMPTY_STRING);
+				+Constant.TAB
+				+resultArr[0].replace(Constant.DOUBLE_QUOTE, Constant.EMPTY_STRING);
 		
 		
 		return result;
@@ -1203,35 +1112,123 @@ public class LSLanguageid {
 	 * @throws Exception ***/
 	public String GetLanguageIDSRTFile(String inputFilePath) throws Exception {
 		String result = new String();
-		String modeStr = constantLanguageid.CLD2_MODE;
+		String modeStr = Constant.CLD2_MODE;
 		
 		result = GetLanguageIDSRTFile(inputFilePath, modeStr);
 		
 		return result;
 	}
 	
+	public String GetLanguageIDFromStringWFS(String input, boolean GetResultFlag) {
+		String output = null;
+		String mode = Constant.CLD2_MODE;
+		
+		output = GetLanguageIDFromStringWFS(input, mode, GetResultFlag);
+		
+		return output;
+	}
 
-//	private void writeFileWithOutBom(String path, String content) throws Exception {
-//
-//		File file = new File(path);
-//		File dir = new File(file.getParent());
-//		if (!dir.exists()) {
-//			// create directory
-//			boolean cancreate = dir.mkdirs();
-//		}
-//		FileOutputStream fO = new FileOutputStream(file);
-//		OutputStreamWriter oS = new OutputStreamWriter(fO, "UTF-8");
-//		BufferedWriter out = new BufferedWriter(oS);
-//		out.write(content);
-//		out.close();
-//		oS.close();
-//		fO.close();
-//	}
+	public String GetLanguageIDFromStringWFS(String input, String mode, boolean GetResultFlag) {
+		String output = null;
+		
+		String jobID = generateID();
+		
+		output = GetLanguageIDFromStringWFS(jobID, input, mode, GetResultFlag);
+		
+		return output;
+	}
 
+	public String GetLanguageIDFromStringWFS(String jobID, String input, String mode, boolean GetResultFlag) {
+		String result = null;
+		result = langService.LanguageIDWFS(jobID, input, mode, GetResultFlag);
+		return result;
+	}
 	
-	
+	public String GetLanguageIDFromFileWFS(String inputFilePath, boolean GetResultFlag) {
+		String output = null;
+		String mode = Constant.CLD2_MODE;
+		
+		output = GetLanguageIDFromFileWFS(inputFilePath, mode, GetResultFlag);
+		
+		return output;
+		
+		
+	}
 
-	
-	
+	private String GetLanguageIDFromFileWFS(String inputFilePath, String mode, boolean getResultFlag) {
+		String output = null;
+		
+		String jobID = generateID();
+		
+		output = GetLanguageIDFromFileWFS(jobID, inputFilePath, mode, getResultFlag);
+		
+		return output;
+	}
+
+	private String GetLanguageIDFromFileWFS(String jobID, String inputFilePath, String mode, boolean getResultFlag) {
+		
+		com.omniscien.lslanguageid.model.LanguageidModel languaeidModel = new com.omniscien.lslanguageid.model.LanguageidModel();
+		
+		oLog.WriteLog(pageName,jobID , "Get Language ID for WFS From File", "Start",  false);
+		
+		//Initial variable;
+		String result = new String();
+		Reader inputString = null;
+		boolean inputTypeTXT = true;
+		String outputProcessTemp = null;
+		
+		if(jobID == null || jobID.equals("")) {
+			jobID = generateID();
+		}
+		
+		//Prepare Input 
+		String inputStr = new String();
+		
+		//Get file type
+		String fileType = getFileType(inputFilePath).toUpperCase();
+		oLog.WriteLog(pageName,jobID , "Get file Type as "+fileType,"", false);
+		
+		if (!fileType.equals("TXT")){
+			inputTypeTXT = false;
+			//Prepare output file part
+			String inputFileName = getFileName(inputFilePath); 
+			
+			outputProcessTemp = rp.getProp(Constant.PROCESS_TEMP_PATH)+jobID+inputFileName+".txt";
+			LSFileSystem lsFile = new LSFileSystem(null);
+			try {
+				lsFile.File.Convert.FileType(
+						//inputFilePath
+						inputFilePath, 
+						//OutputFilePath
+						outputProcessTemp, 
+						//FileFormat
+						fileType, 
+						//OutputFileFormat
+						"TXT");
+				boolean checkSupport = new File(outputProcessTemp).exists();
+				if(!checkSupport) {
+					return "{\"errorstatus\":\"yes\",\"dominantlanguage\":\"\",\"dominantlanguagepercent\":\"\",\"secondarylanguage\":\"\",\"secondarylangpercent\":\"\"}";
+				}
+				result = langService.LanguageidFromFileForWFS(outputProcessTemp, getResultFlag);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}else {
+			try {
+				result = langService.LanguageidFromFileForWFS(inputFilePath, getResultFlag);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		// If input not TXT will delete file temp
+		if (!inputTypeTXT) {
+			deleteFile(outputProcessTemp);
+		}
+		
+		oLog.WriteLog(pageName,jobID , "Get Language ID for WFS From File", "End Normally",  false);
+		return result;
+	}
 	
 }

@@ -8,14 +8,18 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import javax.servlet.ServletContext;
 
 import org.apache.commons.io.FileUtils;
@@ -23,29 +27,31 @@ import org.apache.commons.io.FileUtils;
 import com.cybozu.labs.langdetect.Detector;
 import com.cybozu.labs.langdetect.DetectorFactory;
 import com.cybozu.labs.langdetect.LangDetectException;
+import com.omniscien.lslanguageid.model.LanguageidModel;
+import com.omniscien.lslanguageid.model.LanguageidRespond;
 
 
 
 public class ProcessUtilLanguageid {
 	
-	ReadPropLanguageid rp = null;
-	//
-	DecimalFormat df = new DecimalFormat(constantLanguageid.DECIMAL_FORMAT_TWO_DIGIT); 
+	ReadProp rp = null;
+	
+	DecimalFormat df = new DecimalFormat(Constant.DECIMAL_FORMAT_TWO_DIGIT); 
 	String resourcepath;
 	private String mode;
 	
 	private String debugPath = null;// = rp.getProp(constantLanguageid.DEBUGPATH);
 	ServletContext app;
-	String languageIDLoadedKey = constantLanguageid.LANGUAGE_ID_LOAD_KEY;
+	String languageIDLoadedKey = Constant.LANGUAGE_ID_LOAD_KEY;
 	RemoveBadChars oRemoveBadChars = null;
 	CommonLanguageid oCommon = null;
 	List<Pattern> lPatternNumPunc = new ArrayList<Pattern>();;
 	public ProcessUtilLanguageid() {
 		
 	}
-	public ProcessUtilLanguageid(String _resourcespath,String _mode, ReadPropLanguageid rp) throws Exception {
+	public ProcessUtilLanguageid(String _resourcespath,String _mode, ReadProp rp) throws Exception {
 		this.rp = rp;
-		debugPath = rp.getProp(constantLanguageid.DEBUGPATH);
+		debugPath = rp.getProp(Constant.DEBUGPATH);
 		
 		//app = _app;
 		resourcepath = _resourcespath;
@@ -71,10 +77,10 @@ public class ProcessUtilLanguageid {
 		lPatternNumPunc = new ArrayList<Pattern>();
 		
 		//TODO: get config path 
-		String configNumPunc = _resourcespath +constantLanguageid.CONFIG_NUM_PUNC;
+		String configNumPunc = _resourcespath +Constant.CONFIG_NUM_PUNC;
 		String numPuncStr = Read(configNumPunc);
 		if (numPuncStr.length() > 0) {
-			String[] numPuncList = numPuncStr.split(constantLanguageid.NEW_LINE_N);
+			String[] numPuncList = numPuncStr.split(Constant.NEW_LINE_N);
 			for (String numPunc : numPuncList) {
 				try {
 					Pattern patternNumberPunc = Pattern.compile(numPunc);
@@ -99,7 +105,7 @@ public class ProcessUtilLanguageid {
 	}
 	private String Read(String FilePath) throws Exception {
 		if (new File(FilePath).isFile()) {
-			return FileUtils.readFileToString(new java.io.File(FilePath), constantLanguageid.UTF_8);
+			return FileUtils.readFileToString(new java.io.File(FilePath), Constant.UTF_8);
 		}else {
 			return "";
 		}
@@ -131,10 +137,10 @@ public class ProcessUtilLanguageid {
 		String temp = input;
 
 		temp = oCommon.RemoveBOM(temp);
-		temp = temp.replace(constantLanguageid.NEW_LINE_RN, constantLanguageid.NEW_LINE_N).replace(constantLanguageid.NEW_LINE_R, constantLanguageid.NEW_LINE_N);
+		temp = temp.replace(Constant.NEW_LINE_RN, Constant.NEW_LINE_N).replace(Constant.NEW_LINE_R, Constant.NEW_LINE_N);
 
 		//TODO: get config path 
-		String configPath = rp.getProp(constantLanguageid.RESULT_PATH)+constantLanguageid.CLEAN_BAD_CHAR_CONFIG;
+		String configPath = rp.getProp(Constant.RESULT_PATH)+Constant.CLEAN_BAD_CHAR_CONFIG;
 		temp = RemoveBadChars(temp, configPath);
 		
 		return temp;
@@ -144,7 +150,7 @@ public class ProcessUtilLanguageid {
 		String output = "";
 		StringBuffer sb = new StringBuffer();
 		boolean bError = false;
-		String sPattern = constantLanguageid.S_PATTERN;
+		String sPattern = Constant.S_PATTERN;
 		Pattern patternLang = Pattern.compile(sPattern, Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 		
 		
@@ -159,34 +165,34 @@ public class ProcessUtilLanguageid {
 			//System.out.println("outputScript: "+outputScript);
 			
 			//Spilt output to Array
-			String[] arOutputScript = outputScript.split(constantLanguageid.NEW_LINE_N);
+			String[] arOutputScript = outputScript.split(Constant.NEW_LINE_N);
 			for (int i = 0; i < arOutputScript.length; i++) {
 				
-				if (arOutputScript[i].startsWith(constantLanguageid.PREFIX_INPUT)){
+				if (arOutputScript[i].startsWith(Constant.PREFIX_INPUT)){
 					
 					String chunk = arOutputScript[i];
 					inputList.add(arOutputScript[i]);
-					i++;if (i < arOutputScript.length) chunk += constantLanguageid.NEW_LINE_N + arOutputScript[i];
+					i++;if (i < arOutputScript.length) chunk += Constant.NEW_LINE_N + arOutputScript[i];
 					
-					i++;if (i < arOutputScript.length)chunk += constantLanguageid.NEW_LINE_N + arOutputScript[i];
-					i++;if (i < arOutputScript.length)chunk += constantLanguageid.NEW_LINE_N + arOutputScript[i];
-					i++;if (i < arOutputScript.length)chunk += constantLanguageid.NEW_LINE_N + arOutputScript[i];
-					i++;if (i < arOutputScript.length)chunk += constantLanguageid.NEW_LINE_N + arOutputScript[i];
+					i++;if (i < arOutputScript.length)chunk += Constant.NEW_LINE_N + arOutputScript[i];
+					i++;if (i < arOutputScript.length)chunk += Constant.NEW_LINE_N + arOutputScript[i];
+					i++;if (i < arOutputScript.length)chunk += Constant.NEW_LINE_N + arOutputScript[i];
+					i++;if (i < arOutputScript.length)chunk += Constant.NEW_LINE_N + arOutputScript[i];
 					
 					String lang = "";
 					
 					Matcher m = patternLang.matcher(chunk);
-					String code = constantLanguageid.EMPTY_STRING,confidence=constantLanguageid.EMPTY_STRING,bytes=constantLanguageid.EMPTY_STRING;
+					String code = Constant.EMPTY_STRING,confidence=Constant.EMPTY_STRING,bytes=Constant.EMPTY_STRING;
 					
 					while (m.find()) {
-						code = m.group(constantLanguageid.STRING_CODE) == null ? constantLanguageid.STRING_UNKNOW : m.group(constantLanguageid.STRING_CODE).toString().trim();
-						if (code.equals(constantLanguageid.STRING_UN) || code.equals(constantLanguageid.EMPTY_STRING)) code=constantLanguageid.STRING_UNKNOW;
-						confidence = m.group(constantLanguageid.STRING_CONFIDENT) == null ? constantLanguageid.STRING_0 : m.group(constantLanguageid.STRING_CONFIDENT).toString().trim();
+						code = m.group(Constant.STRING_CODE) == null ? Constant.STRING_UNKNOW : m.group(Constant.STRING_CODE).toString().trim();
+						if (code.equals(Constant.STRING_UN) || code.equals(Constant.EMPTY_STRING)) code=Constant.STRING_UNKNOW;
+						confidence = m.group(Constant.STRING_CONFIDENT) == null ? Constant.STRING_0 : m.group(Constant.STRING_CONFIDENT).toString().trim();
 						
 						break;
 					}
 					
-					lang = code.toUpperCase()+constantLanguageid.COLON+(df.format(Double.parseDouble(confidence)))+constantLanguageid.PERCENTAGE_SYMBOL;
+					lang = code.toUpperCase()+Constant.COLON+(df.format(Double.parseDouble(confidence)))+Constant.PERCENTAGE_SYMBOL;
 					if (output.length() == 0) output = lang; else output += "\n" + lang;
 					
 				}
@@ -199,7 +205,7 @@ public class ProcessUtilLanguageid {
 		}
 		
 		
-		String[] arOutput = (output).split(constantLanguageid.NEW_LINE_N);
+		String[] arOutput = (output).split(Constant.NEW_LINE_N);
 		for (int i = 0; i < arOutput.length; i++) {
 			//String line = arLine[i];
 			String line = inputList.get(i);
@@ -238,7 +244,7 @@ public class ProcessUtilLanguageid {
 				}
 			}
 		}
-		 GetDominantLanguage(sb.toString());
+		GetDominantLanguageLinByLine(sb.toString());
 			return sb.toString();
 		
 		
@@ -404,9 +410,9 @@ public class ProcessUtilLanguageid {
 
 			String[] arLine = (input).split("\n");
 			String[] arOutput = (output).split("\n");
-			for(int i = 0; i<arLine.length; i++) {
-				System.out.println("Result Array:["+i+"]"+arLine[i]);
-			}
+//			for(int i = 0; i<arLine.length; i++) {
+//				System.out.println("Result Array:["+i+"]"+arLine[i]);
+//			}
 			
 			for (int i = 0; i < arLine.length; i++) {
 				String line = arLine[i];
@@ -448,7 +454,7 @@ public class ProcessUtilLanguageid {
 			
 		}else if(mode.equals("cld2") && inputFromFileFlag == true) {
 			
-			resourcepath = constantLanguageid.RESULT_PATH;
+			resourcepath = Constant.RESULT_PATH;
 			
 			String output = "";
 			boolean bError = false;
@@ -951,6 +957,112 @@ public class ProcessUtilLanguageid {
 		secondaryLang.set(sSecondaryLanguage);
 		dominantLang.set(sDominantLanguage);
 		
+		
+	}
+	
+public void GetDominantLanguageLinByLine(String outputText) 
+	
+
+	{
+		AtomicReference<String> dominantLang = new AtomicReference<String>();
+		AtomicReference<String> secondaryLang = new AtomicReference<String>();
+		HashMap<String,Double> hashLang = new HashMap<String, Double>();
+		
+		int lineCount = 0;
+		String[] arLine = outputText.split("\n");
+		for (int i = 0; i < arLine.length; i++) {
+			//count all language
+			/*
+			String[] arLangDetect = arLine[i].split("\t")[0].split("[|]");
+			if (arLine[i].split("\t").length > 1)
+			{
+				for (int j = 0; j < arLangDetect.length; j++) {
+					String[] arLang = arLangDetect[j].split(":");
+					String sLang = "";
+					double dPercent = Double.parseDouble(arLang[1].replace("%",""));
+					if (arLang[0].length() > 2)
+						sLang = arLang[0].substring(0, 2).toUpperCase();
+					else 
+						sLang = arLang[0].toUpperCase();
+					
+					if (!hashLang.containsKey(sLang))
+						hashLang.put(sLang,dPercent);
+					else
+					{
+						double dPercentSum = hashLang.get(sLang)+dPercent;
+						hashLang.put(sLang,dPercentSum);
+					}
+				}
+				lineCount++;
+			}
+			*/
+			//count only first language
+			String[] arLangDetect = arLine[i].split("\t")[0].split("[|]");
+			if (arLine[i].split("\t").length > 1)
+			{
+				boolean isNP = false;
+				for (int j = 0; j < 1; j++) {
+					String[] arLang = arLangDetect[j].split(":");
+					String sLang = "";
+					double dPercent = 100.0;
+					if (arLang[0].length() > 2)
+						sLang = arLang[0].substring(0, 2).toUpperCase();
+					else 
+						sLang = arLang[0].toUpperCase();
+					
+					if (sLang.contentEquals("NP")) {
+						isNP = true;
+						break;
+					}
+					if (!hashLang.containsKey(sLang))
+						hashLang.put(sLang,dPercent);
+					else
+					{
+						double dPercentSum = hashLang.get(sLang)+dPercent;
+						hashLang.put(sLang,dPercentSum);
+					}
+				}
+				if (!isNP)
+					lineCount++;
+			}
+		}	 
+	    
+		//Get Dominant Language
+		double dMatch = 0;
+		String sDominantLanguage = "";
+		String sSecondaryLanguage = "";
+		for (Iterator<Map.Entry<String, Double>> it =  hashLang.entrySet().iterator();
+				it.hasNext();) {
+			Map.Entry<String, Double> entry = it.next();
+			String sKey = entry.getKey();
+			double dValue = entry.getValue()/lineCount;
+			if (dValue > dMatch)
+			{
+				dMatch = dValue;
+				sDominantLanguage = sKey.toUpperCase();
+			}
+		}
+		
+		for (Iterator<Map.Entry<String, Double>> it =  hashLang.entrySet().iterator();
+				it.hasNext();) {
+			Map.Entry<String, Double> entry = it.next();
+			String sKey = entry.getKey();
+			if (!sKey.toUpperCase().equals(sDominantLanguage))
+			{
+				if (sSecondaryLanguage.length() > 0) 
+					sSecondaryLanguage+="," + sKey;
+				else 
+					sSecondaryLanguage = sKey;
+			}
+		}
+		
+		if (sDominantLanguage.length() == 0) {
+			sDominantLanguage = "UN";
+		}
+		secondaryLang.set(sSecondaryLanguage);
+		dominantLang.set(sDominantLanguage);
+		
+		
 	}
 	
 	private String callDetectorFromFileCLD2Only(String inputpath ) throws Exception {
@@ -1248,5 +1360,458 @@ public class ProcessUtilLanguageid {
 		} catch (IllegalThreadStateException e) {
 			return true;
 		}
+	}
+	public LanguageidModel detectResultFromStringWFS(String input, String mode2, LanguageidModel languageidModel) {
+		
+		Pattern patternNumberPunc = Pattern.compile("(^([0-9 !\"\\#$%&'()*+,\\-./:;<=>?@\\[\\\\\\]^_`{|}~]+)$)");
+		String sPattern = "Language(?<no>[ ]+[0-9]):[ ]+name:(.*)code:[ ]+(?<code>[a-zA-Z\\_]+)[ ]+confidence:[ ]+(?<confidence>[0-9\\.]+)[ ]+read[ ]+bytes:[ ]+(?<bytes>[0-9]+)";
+		Pattern patternLang = Pattern.compile(sPattern, Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+		
+		StringBuffer sb = new StringBuffer();
+		
+		
+		if(!mode.equals("cld2")) {
+			input = prepareInput(input);
+		}
+		// encrypt blank line
+		input = encryptBlankLine(input);
+		
+		if (mode.equals("polyglot")){
+			String output = "";
+			boolean bError = false;
+			try {
+				int chunkcount = 500;
+				int linecount = 0;
+				StringBuilder sbChunk = new StringBuilder("");
+				String[] lines = input.split("\n");
+				for (String line : lines) {
+					sbChunk.append(line);
+					linecount++;
+					if (linecount < chunkcount) {
+						sbChunk.append("\n");
+					}else if (linecount >= chunkcount) {
+
+						/**** Detect for CLD2 ********/
+						long beginTime = System.currentTimeMillis();
+						String outputScript = callDetector(sbChunk.toString());
+						long endTime = System.currentTimeMillis();
+					//	System.out.println("Used time for CLD2: " + (endTime - beginTime) + " millisec");
+						String[] arOutputScript = outputScript.split("\n");
+						for (int i = 0; i < arOutputScript.length; i++) {
+							if (arOutputScript[i].startsWith("Input: "))
+							{
+								String chunk = arOutputScript[i];
+								//2020-05-02 Add check index is exist
+								i++;if (i < arOutputScript.length) chunk += "\n" + arOutputScript[i];
+								i++;if (i < arOutputScript.length)chunk += "\n" + arOutputScript[i];
+								i++;if (i < arOutputScript.length)chunk += "\n" + arOutputScript[i];
+								i++;if (i < arOutputScript.length)chunk += "\n" + arOutputScript[i];
+								i++;if (i < arOutputScript.length)chunk += "\n" + arOutputScript[i];
+								
+								String lang = "";
+
+									Matcher m = patternLang.matcher(chunk);
+									
+									String code = "",confidence="",bytes="";
+									while (m.find()) {
+										code = m.group("code") == null ? "unknown" : m.group("code").toString().trim();
+										if (code.equals("un") || code.equals("")) code="unknown";
+										confidence = m.group("confidence") == null ? "0" : m.group("confidence").toString().trim();
+										
+										break;
+									}
+									
+									lang = code.toUpperCase()+":"+(df.format(Double.parseDouble(confidence)))+"%";
+									if (output.length() == 0) output = lang; else output += "\n" + lang;
+							
+							}
+						}
+						
+						
+						linecount = 0;
+						sbChunk = new StringBuilder("");
+					}
+				}
+				
+				if (sbChunk.toString().length() > 0) {
+					String outputScript = callDetector(sbChunk.toString());
+					String[] arOutputScript = outputScript.split("\n");
+					for (int i = 0; i < arOutputScript.length; i++) {
+						if (arOutputScript[i].startsWith("Input: "))
+						{
+							String chunk = arOutputScript[i];
+							//2020-05-02 Add check index is exist
+							i++;if (i < arOutputScript.length) chunk += "\n" + arOutputScript[i];
+							i++;if (i < arOutputScript.length)chunk += "\n" + arOutputScript[i];
+							i++;if (i < arOutputScript.length)chunk += "\n" + arOutputScript[i];
+							i++;if (i < arOutputScript.length)chunk += "\n" + arOutputScript[i];
+							i++;if (i < arOutputScript.length)chunk += "\n" + arOutputScript[i];
+							
+							String lang = "";
+
+								Matcher m = patternLang.matcher(chunk);
+								
+								String code = "",confidence="",bytes="";
+								while (m.find()) {
+									code = m.group("code") == null ? "unknown" : m.group("code").toString().trim();
+									if (code.equals("un") || code.equals("")) code="unknown";
+									confidence = m.group("confidence") == null ? "0" : m.group("confidence").toString().trim();
+									
+									break;
+								}
+								
+								lang = code.toUpperCase()+":"+(df.format(Double.parseDouble(confidence)))+"%";
+								if (output.length() == 0) output = lang; else output += "\n" + lang;
+							//}
+						}
+					}
+				}
+				
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+				bError = true;
+			}
+			
+			String[] arLine = (input).split("\n");
+			String[] arOutput = (output).split("\n");
+
+			
+			for (int i = 0; i < arLine.length; i++) {
+				String line = arLine[i];
+				if (bError)
+				{
+					if (i == 0)
+						sb.append("unknown:0%\t"+line);
+					else
+						sb.append("\nunknown:0%\t"+line);
+				}
+				else
+				{
+					if (line.trim().startsWith("_AOBLANKLINEKAO_"))
+					//if (line.trim().length() == 0)
+					{
+						if (i == 0)
+							sb.append("");
+						else
+							sb.append("\n");
+					}
+					else
+					{
+						if (isNumPunc(line)) {
+							String lang = "NP:"+(df.format(Double.parseDouble("100")))+"%";
+							if (i == 0)
+								sb.append(lang+"\t"+line);
+							else
+								sb.append("\n"+lang+"\t"+line);
+						}else {
+							String lang = arOutput[i];
+							if (i == 0)
+								sb.append(lang+"\t"+line);
+							else
+								sb.append("\n"+lang+"\t"+line);
+						}
+					}
+				}
+			}
+		} else if (mode.equals("cld3")) {
+			// System.out.println("CLD3");
+			String output = "";
+			boolean bError = false;
+			String[] lines = new String[] {};
+			try {
+
+				DetectLanguage detectLang = null;
+				try {
+					detectLang = new DetectLanguage();
+				} catch (java.lang.UnsatisfiedLinkError e) {
+					e.printStackTrace();
+					throw e;
+				} catch (java.lang.Exception e) {
+					e.printStackTrace();
+					throw e;
+				}
+
+				List<DetectLanguage.LanguageResult> results = null;
+				
+				lines = input.split("\n");
+				for (int i = 0; i < lines.length; i++) {
+					String line = lines[i].trim();
+					lines[i] = line;
+
+					if (line.length() == 0) {
+						
+						if (i == 0) output = ""; else output += "\n" + "";
+						
+					}else {
+
+						if (patternNumberPunc.matcher(line).matches()) {
+							String lang = "NP:"+(df.format(Double.parseDouble("100")))+"%";
+							if (output.length() == 0) output = lang; else output += "\n" + lang;
+							continue;
+						}
+						
+						String lang = "";
+						/**** Detect for CLD3 ********/
+						//long beginTime = System.currentTimeMillis();
+						results = detectLang.find(line);
+					//	long endTime = System.currentTimeMillis();
+						//System.out.println("Used time for CLD3: " + (endTime - beginTime) + " millisec");
+						if (results != null && results.size() > 0) {
+							for (DetectLanguage.LanguageResult result : results) {
+								/*
+								 * if (lang.length() == 0) { lang = result.language.toUpperCase() + ":" +
+								 * df.format(result.percent) + "%"; }else { lang += "|" +
+								 * result.language.toUpperCase() + ":" + df.format(result.percent) + "%"; }
+								 */
+								lang = result.language.toUpperCase() + ":" + df.format(result.percent) + "%";
+								break;
+							}
+						}else {
+							lang = "UN:" + df.format(100.0) + "%";
+						}
+						
+						if (i == 0) output = lang; else output += "\n" + lang;
+					}
+				}
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+				bError = true;
+			}
+
+			String[] arLine = (input).split("\n");
+			String[] arOutput = (output).split("\n");
+			for (int i = 0; i < arLine.length; i++) {
+				if (bError) {
+					if (i == 0)
+						sb.append("unknown:0%\t" + arLine[i]);
+					else
+						sb.append("\nunknown:0%\t" + arLine[i]);
+				} else {
+					if (arLine[i].trim().length() == 0) {
+						if (i == 0)
+							sb.append("");
+						else
+							sb.append("\n");
+					} else {
+						if (i == 0)
+							sb.append(arOutput[i] + "\t" + arLine[i]);
+						else
+							sb.append("\n" + arOutput[i] + "\t" + arLine[i]);
+					}
+				}
+			}
+		}
+		
+		languageidModel = GetResultLanguageModel(sb.toString(), languageidModel);
+		
+		return languageidModel;
+	}
+	private LanguageidModel GetResultLanguageModel(String outputText, LanguageidModel languageidModel) {
+		// TODO Auto-generated method stub
+		HashMap<String,Long> hashLang = new HashMap<String, Long>();
+		Long totalCharsInDoc = 0L;
+		String[] arLine = outputText.split("\n");
+		for (int i = 0; i < arLine.length; i++) {
+			//count only first language
+			String[] arLangDetect = arLine[i].split("\t")[0].split("[|]");
+			if (arLine[i].split("\t").length > 1){
+				String text = arLine[i].split("\t")[1].trim();
+				//ignore blank
+				if (text.length() == 0)
+					continue;
+				
+				for (int j = 0; j < 1; j++) {
+					String[] arLang = arLangDetect[j].split(":");
+					String sLang = arLang[0].trim();
+					//ignore unknown language
+					if (sLang.length() == 0 || sLang.equalsIgnoreCase("UNKNOWN"))
+						continue;
+						
+					if (sLang.length() > 2)
+						sLang = sLang.substring(0, 2).toUpperCase();
+					else 
+						sLang = sLang.toUpperCase();
+					
+					Long lChars = new Long(text.length());
+					totalCharsInDoc += lChars;
+					if (!hashLang.containsKey(sLang))
+						hashLang.put(sLang, lChars);
+					else
+					{
+						Long lTotalChars = hashLang.get(sLang) + lChars;
+						hashLang.put(sLang, lTotalChars);
+					}
+				}
+			}
+		}
+		
+		String sDominantLanguage = "";
+		String sDominantLanguagePercent = "";
+		String sSecondaryLanguage = "";
+		String sSecondaryLanguagePercent = "";
+		
+		if (hashLang != null && hashLang.size() > 0) {
+			//sort hashmap desc
+			Map<String, Long> langSort = hashLang.entrySet()
+					  .stream()
+					  .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+					  .collect(Collectors.toMap(
+					    Map.Entry::getKey, 
+					    Map.Entry::getValue, 
+					    (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+		    
+			int i = 1;
+			for (Iterator<Map.Entry<String, Long>> it =  langSort.entrySet().iterator();
+					it.hasNext();) {
+				Map.Entry<String, Long> entry = it.next();
+				String sKey = entry.getKey();
+				if (i == 1) {
+					//Get Dominant Language	
+					float percentage = (float)(((float)entry.getValue() / (float)totalCharsInDoc) * 100);
+					if(sDominantLanguage.length() > 0) {
+						sDominantLanguage += ","+sKey;
+						sDominantLanguagePercent += "," + sKey + ":" + String.format("%.2f", percentage);
+					}else {
+						sDominantLanguage = sKey;
+						sDominantLanguagePercent = sKey + ":" + String.format("%.2f", percentage);
+					}
+					
+				} else {
+					//Get Secondary Language
+					float percentage = (float)(((float)entry.getValue() / (float)totalCharsInDoc) * 100);
+					if (sSecondaryLanguage.length() > 0) {
+						sSecondaryLanguage += "," + sKey;
+						sSecondaryLanguagePercent += "," + sKey + ":" + String.format("%.2f", percentage);
+					}
+					else { 
+						sSecondaryLanguage = sKey;
+						sSecondaryLanguagePercent = sKey + ":" + String.format("%.2f", percentage);
+					}
+				}
+				i++;				
+			}
+			
+		}
+		
+		if (sDominantLanguage.length() == 0) {
+			sDominantLanguage = "UN";
+		}
+		languageidModel.setErrortext("no");
+		languageidModel.setResult(outputText);
+		languageidModel.setDominantlanguage(sDominantLanguage);
+		languageidModel.setDominantLangPercent(sDominantLanguagePercent);
+		languageidModel.setSecondarylanguage(sSecondaryLanguage);
+		languageidModel.setSecondaryLangPercent(sSecondaryLanguagePercent);
+		return languageidModel;
+	}
+	
+	public LanguageidModel detectResultFromFileForWFS(String inputFilePath,String mode, LanguageidModel languageModel) {
+		
+		
+		String output = "";
+		StringBuffer sb = new StringBuffer();
+		boolean bError = false;
+		String sPattern = Constant.S_PATTERN;
+		Pattern patternLang = Pattern.compile(sPattern, Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+		
+		
+		//Prepare for Output
+		List<String> inputList = new ArrayList();
+		
+		try {
+	
+			// Get Output of file
+			String outputScript = callDetectorFromFileCLD2Only(inputFilePath);
+			
+			//System.out.println("outputScript: "+outputScript);
+			
+			//Spilt output to Array
+			String[] arOutputScript = outputScript.split(Constant.NEW_LINE_N);
+			for (int i = 0; i < arOutputScript.length; i++) {
+				
+				if (arOutputScript[i].startsWith(Constant.PREFIX_INPUT)){
+					
+					String chunk = arOutputScript[i];
+					inputList.add(arOutputScript[i]);
+					i++;if (i < arOutputScript.length) chunk += Constant.NEW_LINE_N + arOutputScript[i];
+					
+					i++;if (i < arOutputScript.length)chunk += Constant.NEW_LINE_N + arOutputScript[i];
+					i++;if (i < arOutputScript.length)chunk += Constant.NEW_LINE_N + arOutputScript[i];
+					i++;if (i < arOutputScript.length)chunk += Constant.NEW_LINE_N + arOutputScript[i];
+					i++;if (i < arOutputScript.length)chunk += Constant.NEW_LINE_N + arOutputScript[i];
+					
+					String lang = "";
+					
+					Matcher m = patternLang.matcher(chunk);
+					String code = Constant.EMPTY_STRING,confidence=Constant.EMPTY_STRING,bytes=Constant.EMPTY_STRING;
+					
+					while (m.find()) {
+						code = m.group(Constant.STRING_CODE) == null ? Constant.STRING_UNKNOW : m.group(Constant.STRING_CODE).toString().trim();
+						if (code.equals(Constant.STRING_UN) || code.equals(Constant.EMPTY_STRING)) code=Constant.STRING_UNKNOW;
+						confidence = m.group(Constant.STRING_CONFIDENT) == null ? Constant.STRING_0 : m.group(Constant.STRING_CONFIDENT).toString().trim();
+						
+						break;
+					}
+					
+					lang = code.toUpperCase()+Constant.COLON+(df.format(Double.parseDouble(confidence)))+Constant.PERCENTAGE_SYMBOL;
+					if (output.length() == 0) output = lang; else output += "\n" + lang;
+					
+				}
+				
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		String[] arOutput = (output).split(Constant.NEW_LINE_N);
+		for (int i = 0; i < arOutput.length; i++) {
+			//String line = arLine[i];
+			String line = inputList.get(i);
+			if (bError)
+			{
+				if (i == 0)
+					sb.append("unknown:0%\t"+line);
+				else
+					sb.append("\nunknown:0%\t"+line);
+			}
+			else
+			{
+				if (line.trim().startsWith("_AOBLANKLINEKAO_"))
+		
+				{
+					if (i == 0)
+						sb.append("");
+					else
+						sb.append("\n");
+				}
+				else
+				{
+					if (isNumPunc(line)) {
+						String lang = "NP:"+(df.format(Double.parseDouble("100")))+"%";
+						if (i == 0)
+							sb.append(lang+"\t"+line);
+						else
+							sb.append("\n"+lang+"\t"+line);
+					}else {
+						String lang = arOutput[i];
+						if (i == 0)
+							sb.append(lang+"\t"+line.replace("Input: ", ""));
+						else
+							sb.append("\n"+lang+"\t"+line.replace("Input: ", ""));
+					}
+				}
+			}
+		}
+		
+		languageModel = GetResultLanguageModel(sb.toString(), languageModel);
+			return languageModel;
+		
+		
+		
 	}
 }

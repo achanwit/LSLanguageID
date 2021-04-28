@@ -3,13 +3,13 @@ package com.omniscien.lslanguageid.model;
 import java.util.Collection;
 
 public class LanguageidRespond extends ResponseMessage {
-	private Collection<Languageid> languageid;
+	private Collection<LanguageidModel> languageid;
 	
-	public Collection<Languageid> getLanguageid() {
+	public Collection<LanguageidModel> getLanguageid() {
 		return languageid;
 	}
 	
-	public void setLanguageid(Collection<Languageid> languageid) {
+	public void setLanguageid(Collection<LanguageidModel> languageid) {
 		this.languageid = languageid;
 	}
 	
