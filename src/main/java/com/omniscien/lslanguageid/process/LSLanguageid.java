@@ -1155,7 +1155,7 @@ public class LSLanguageid {
 		
 	}
 
-	private String GetLanguageIDFromFileWFS(String inputFilePath, String mode, boolean getResultFlag) {
+	public String GetLanguageIDFromFileWFS(String inputFilePath, String mode, boolean getResultFlag) {
 		String output = null;
 		
 		String jobID = generateID();
@@ -1165,7 +1165,7 @@ public class LSLanguageid {
 		return output;
 	}
 
-	private String GetLanguageIDFromFileWFS(String jobID, String inputFilePath, String mode, boolean getResultFlag) {
+	public String GetLanguageIDFromFileWFS(String jobID, String inputFilePath, String mode, boolean getResultFlag) {
 		
 		com.omniscien.lslanguageid.model.LanguageidModel languaeidModel = new com.omniscien.lslanguageid.model.LanguageidModel();
 		
