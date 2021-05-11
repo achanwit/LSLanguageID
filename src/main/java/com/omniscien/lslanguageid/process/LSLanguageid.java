@@ -7,6 +7,7 @@ import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 //import java.io.FileInputStream;
 //import java.io.FileNotFoundException;
@@ -30,6 +31,15 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import com.omniscien.lslanguageid.service.ServiceLanguageidImp;
 import com.omniscien.lslanguageid.util.ProcessUtilLanguageid;
@@ -973,6 +983,126 @@ public class LSLanguageid {
 		return resultStatus;
 	}
 	
+	public String GetLanguageIDSRTFileDefineMaxLine(String inputFilePath, String modeStr, int MaxLine, int outputMode) {
+		String jobID = generateID();
+		String result = null;
+		//Get Total Line
+		int totalLines = 0;
+		
+		boolean getResultFlag = false;
+		if(outputMode == 1) {
+			getResultFlag = false;
+		}else if(outputMode == 2) {
+			getResultFlag = true;
+		}
+		
+		BufferedReader readerBuf = null;
+		try {
+			readerBuf = new BufferedReader(new FileReader(inputFilePath));
+			while(readerBuf.readLine() != null) {
+				totalLines++;
+			}
+			readerBuf.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+		
+		//Preapre subtitelCount
+		 int subtitelCount = 0;
+		
+		//Prepare dialog Count
+		int dialogCount = 0;
+		
+		StringBuffer inputBuf = new StringBuffer();
+		String input = new String();
+		
+		//String indexPattern = "[\\d]{1,5}[a-z]{0,2}[\\n]";
+		String indexPattern = "[0-9]";
+		String timeLinePattern = "^[\\d]{2}[:][\\d]{2}[:][\\d]{2}[,][\\d]{3}[ ][-][-][\\>][ ][\\d]{2}[:][\\d]{2}[:][\\d]{2}[,][\\d]{3}";
+		
+		//Prepare get input	
+		FileInputStream inputString;
+		try {
+			inputString = new FileInputStream(inputFilePath);
+			DataInputStream in = new DataInputStream(inputString);
+			BufferedReader br1 = new BufferedReader(new InputStreamReader(in));
+			
+			String sent = null;
+		      while ((sent = br1.readLine()) != null){
+	
+					int inputLength = sent.length();
+					if(inputLength > 5) {
+						if(sent.matches(timeLinePattern)) {
+							subtitelCount++;
+						}else{
+							dialogCount++;
+						}
+					}
+		      }	
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		
+		FileInputStream inputString2;
+		try {
+			inputString2 = new FileInputStream(inputFilePath);
+			DataInputStream in2 = new DataInputStream(inputString2);
+			BufferedReader br2 = new BufferedReader(new InputStreamReader(in2));
+			
+			String sent = null;
+			int countLintProgress = 0;
+		      while ((sent = br2.readLine()) != null){
+	
+		    	  int inputLength = sent.length();
+		    	  
+		    	  if(inputLength > 5) {
+
+						if(!sent.matches(timeLinePattern)) {
+							inputBuf = inputBuf.append(sent).append("\n");
+							countLintProgress++;
+//							if(inputBuf.length() > MaxLine) {
+//								break;
+//							}
+						}
+					}else if(inputLength != 0){
+						String inputCheck = sent.substring(0, inputLength-1);
+						try {
+						int inputInt = Integer.parseInt(inputCheck);
+						}catch(NumberFormatException e) {
+							inputBuf = inputBuf.append(inputCheck).append("\n");
+							countLintProgress++;
+//							if(inputBuf.length() > MaxLine) {
+//								break;
+//							}
+						}
+							
+						
+					}
+					if (MaxLine != 0) {
+						if (countLintProgress == MaxLine) {
+							break;
+						}
+					}
+		      }	
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		input = new String(inputBuf);
+		result = langService.LanguageIDWFS(jobID, input, modeStr, getResultFlag);
+		
+		
+		return result;
+	}
+	
 	/*** 9 Get Language id for SRT file By set mode parameter 
 	 * @throws Exception ***/
 	public String GetLanguageIDSRTFile(String inputFilePath, String modeStr) throws Exception {
@@ -1164,7 +1294,353 @@ public class LSLanguageid {
 		
 		return output;
 	}
+	
+	/*** Start Add max Line 2021-05-11 ***/
+	public String GetLanguageIDFromTextWFS(String inputFilePath, int InputFormat, int maxLine, int AnalysisType ,  int OutputMode) {
+		com.omniscien.lslanguageid.model.LanguageidModel languaeidModel = new com.omniscien.lslanguageid.model.LanguageidModel();
+		
+		boolean getResultFlag = false;
+		if(OutputMode == 1) {
+			getResultFlag = false;
+		}else if(OutputMode == 2) {
+			getResultFlag = true;
+		}
+		
+		String mode = null;
+		if(AnalysisType == 1) {
+			mode = "cld2";
+		}else if (AnalysisType == 2){
+			mode = "cld3";
+		}else {
+			return "{\"errorstatus\":\"yes\", \"errordatail\":\"Mistake OutputMode input.\",\"dominantlanguage\":\"\",\"dominantlanguagepercent\":\"\",\"secondarylanguage\":\"\",\"secondarylangpercent\":\"\"}";
+			
+		}
+		
+		// Initial variable;
+		String result = new String();
+		
+		String jobID = generateID();
+		boolean checkSupport = false;
+		oLog.WriteLog(pageName,jobID , "Get Language ID String", "Start",  false);
+		
+		//Get file type
+		String fileType = getFileType(inputFilePath).toLowerCase();
+		oLog.WriteLog(pageName,jobID , "Get file Type as "+fileType,"", false);
+		
+		//Check support
+		String[] filesSupportArr = {"msg", "html", "htm", "txt", "srt", "ttml"};
+		for(String fileSupport : filesSupportArr) {
+			checkSupport = false;
+			if(fileSupport.equals(fileType)) {
+				checkSupport = true;
+				break;
+			}
+		}
+		
+		if (!checkSupport) {
+			return "{\"errorstatus\":\"yes\", \"errordatail\":\"not support "+fileType+" file type\",\"dominantlanguage\":\"\",\"dominantlanguagepercent\":\"\",\"secondarylanguage\":\"\",\"secondarylangpercent\":\"\"}";
+		}
+		
+		if(InputFormat != 4) {
+			
 
+			
+			boolean inputTypeTXT = true;
+			String outputProcessTemp = null;
+
+			// Convert Input file to TXT
+			if (!fileType.equals("txt")) {
+				inputTypeTXT = false;
+				// Prepare output file part
+				String inputFileName = getFileName(inputFilePath);
+
+				outputProcessTemp = rp.getProp(Constant.PROCESS_TEMP_PATH) + jobID + inputFileName + ".txt";
+				LSFileSystem lsFile = new LSFileSystem(null);
+				try {
+					lsFile.File.Convert.FileType(
+							// inputFilePath
+							inputFilePath,
+							// OutputFilePath
+							outputProcessTemp,
+							// FileFormat
+							fileType,
+							// OutputFileFormat
+							"TXT");
+					checkSupport = new File(outputProcessTemp).exists();
+					if (!checkSupport) {
+						return "{\"errorstatus\":\"yes\",\"dominantlanguage\":\"\",\"dominantlanguagepercent\":\"\",\"secondarylanguage\":\"\",\"secondarylangpercent\":\"\"}";
+					}
+
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			// If maxLine == 0 get All file
+			if (maxLine == 0) {
+				try {
+					if(inputTypeTXT) {
+						result = langService.LanguageidFromFileForWFS(inputFilePath, getResultFlag);
+					}else {
+						result = langService.LanguageidFromFileForWFS(outputProcessTemp, getResultFlag);
+					}
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			// get from MaxLine Input
+			else {
+				try {
+					FileInputStream fstream = null;
+					if(inputTypeTXT) {
+						fstream = new FileInputStream(inputFilePath);
+					}else {
+						fstream = new FileInputStream(outputProcessTemp);
+					}
+					
+					DataInputStream in = new DataInputStream(fstream);
+					BufferedReader br = new BufferedReader(new InputStreamReader(in));
+					int countLineProgress = 0;
+
+					String strLine;
+					StringBuffer inputFromReadTXT = new StringBuffer();
+					while ((strLine = br.readLine()) != null) {
+						countLineProgress++;
+						inputFromReadTXT.append(strLine).append("\n");
+						if (countLineProgress == maxLine) {
+							break;
+						}
+					}
+					result = langService.LanguageIDWFS(jobID, inputFromReadTXT.toString(), mode, getResultFlag);
+
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}else {
+			if(fileType.equals("srt")) {
+				result = GetLanguageIDSRTFileDefineMaxLine(inputFilePath, mode,  maxLine, OutputMode);
+			}else if(fileType.equals("ttml")) {
+				result = GetLanguageIDTTMLFile(inputFilePath, mode,  maxLine, OutputMode);
+			}else {
+				return "{\"errorstatus\":\"yes\", \"errordatail\":\"not support "+fileType+" file type\",\"dominantlanguage\":\"\",\"dominantlanguagepercent\":\"\",\"secondarylanguage\":\"\",\"secondarylangpercent\":\"\"}";
+				
+			}
+		}
+		return result;
+	}
+	
+	public String GetLanguageIDFromFileWFS(String inputFilePath, int maxLine, int AnalysisType ,  int OutputMode, String OutputFile) {
+		com.omniscien.lslanguageid.model.LanguageidModel languaeidModel = new com.omniscien.lslanguageid.model.LanguageidModel();
+		
+		boolean getResultFlag = false;
+		if(OutputMode == 1) {
+			getResultFlag = false;
+		}else if(OutputMode == 2) {
+			getResultFlag = true;
+		}
+		
+		String mode = null;
+		if(AnalysisType == 1) {
+			mode = "cld2";
+		}else if (AnalysisType == 2){
+			mode = "cld3";
+		}else {
+			return "{\"errorstatus\":\"yes\", \"errordatail\":\"Mistake OutputMode input.\",\"dominantlanguage\":\"\",\"dominantlanguagepercent\":\"\",\"secondarylanguage\":\"\",\"secondarylangpercent\":\"\"}";
+			
+		}
+		
+		// Initial variable;
+		String result = new String();
+		
+		String jobID = generateID();
+		boolean checkSupport = false;
+		oLog.WriteLog(pageName,jobID , "Get Language ID String", "Start",  false);
+		
+		//Get file type
+		String fileType = getFileType(inputFilePath).toLowerCase();
+		oLog.WriteLog(pageName,jobID , "Get file Type as "+fileType,"", false);
+		
+		//Check support
+		String[] filesSupportArr = {"doc", "docx","xls","xlsx", "ppt", "pptx", "msg","pdf", "html", "htm", "txt", "srt", "ttml"};
+		for(String fileSupport : filesSupportArr) {
+			checkSupport = false;
+			if(fileSupport.equals(fileType)) {
+				checkSupport = true;
+				break;
+			}
+		}
+		
+		if (!checkSupport) {
+			return "{\"errorstatus\":\"yes\", \"errordatail\":\"not support "+fileType+" file type\",\"dominantlanguage\":\"\",\"dominantlanguagepercent\":\"\",\"secondarylanguage\":\"\",\"secondarylangpercent\":\"\"}";
+		}
+		
+		if(fileType.equals("doc") ||
+				fileType.equals("docx") || 
+				fileType.equals("xls") || 
+				fileType.equals("xlsx") || 
+				fileType.equals("ppt") || 
+				fileType.equals("pptx") || 
+				fileType.equals("msg") || 
+				fileType.equals("pdf") || 
+				fileType.equals("html") || 
+				fileType.equals("htm") || 
+				fileType.equals("txt")) {
+			
+
+			
+			boolean inputTypeTXT = true;
+			String outputProcessTemp = null;
+
+			// Convert Input file to TXT
+			if (!fileType.equals("txt")) {
+				inputTypeTXT = false;
+				// Prepare output file part
+				String inputFileName = getFileName(inputFilePath);
+
+				outputProcessTemp = rp.getProp(Constant.PROCESS_TEMP_PATH) + jobID + inputFileName + ".txt";
+				LSFileSystem lsFile = new LSFileSystem(null);
+				try {
+					lsFile.File.Convert.FileType(
+							// inputFilePath
+							inputFilePath,
+							// OutputFilePath
+							outputProcessTemp,
+							// FileFormat
+							fileType,
+							// OutputFileFormat
+							"TXT");
+					checkSupport = new File(outputProcessTemp).exists();
+					if (!checkSupport) {
+						return "{\"errorstatus\":\"yes\",\"dominantlanguage\":\"\",\"dominantlanguagepercent\":\"\",\"secondarylanguage\":\"\",\"secondarylangpercent\":\"\"}";
+					}
+
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			// If maxLine == 0 get All file
+			if (maxLine == 0) {
+				try {
+					if(inputTypeTXT) {
+						result = langService.LanguageidFromFileForWFS(inputFilePath, getResultFlag);
+					}else {
+						result = langService.LanguageidFromFileForWFS(outputProcessTemp, getResultFlag);
+					}
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			// get from MaxLine Input
+			else {
+				try {
+					FileInputStream fstream = null;
+					if(inputTypeTXT) {
+						fstream = new FileInputStream(inputFilePath);
+					}else {
+						fstream = new FileInputStream(outputProcessTemp);
+					}
+					
+					DataInputStream in = new DataInputStream(fstream);
+					BufferedReader br = new BufferedReader(new InputStreamReader(in));
+					int countLineProgress = 0;
+
+					String strLine;
+					StringBuffer inputFromReadTXT = new StringBuffer();
+					while ((strLine = br.readLine()) != null) {
+						countLineProgress++;
+						inputFromReadTXT.append(strLine).append("\n");
+						if (countLineProgress == maxLine) {
+							break;
+						}
+					}
+					result = langService.LanguageIDWFS(jobID, inputFromReadTXT.toString(), mode, getResultFlag);
+
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}else {
+			if(fileType.equals("srt")) {
+				result = GetLanguageIDSRTFileDefineMaxLine(inputFilePath, mode,  maxLine, OutputMode);
+			}else if(fileType.equals("ttml")) {
+				result = GetLanguageIDTTMLFile(inputFilePath, mode,  maxLine, OutputMode);
+			}else {
+				return "{\"errorstatus\":\"yes\", \"errordatail\":\"not support "+fileType+" file type\",\"dominantlanguage\":\"\",\"dominantlanguagepercent\":\"\",\"secondarylanguage\":\"\",\"secondarylangpercent\":\"\"}";
+				
+			}
+		}
+		if(OutputFile != null) {
+			File file = new File(OutputFile);
+			if(file.exists()) {
+				file.delete();
+			}
+			writeFile(result, result, OutputFile);
+		}
+		return result;
+	}
+	
+	public String GetLanguageIDTTMLFile(String inputFilePath, String mode, int maxLine, int outputMode) {
+		String jobID = generateID();
+		int lineCountProgress = 0;
+		String result = null;
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder = null;
+		boolean getResultFlag = false;
+		if(outputMode == 1) {
+			getResultFlag = false;
+		}else if(outputMode == 2) {
+			getResultFlag = true;
+		}
+		
+		StringBuffer inputTemp = new StringBuffer();
+		try {
+			builder = factory.newDocumentBuilder();
+			Document document = builder.parse(new File(inputFilePath));
+		    NodeList nodeList=document.getElementsByTagName("*");
+		    for (int i=0; i<nodeList.getLength(); i++) {
+		    	
+
+		        // Get element
+		        Element element = (Element)nodeList.item(i);
+		        if(element.getNodeName().equals("p")) {
+		        	lineCountProgress++;
+		        	inputTemp.append(element.getChildNodes().item(0).getNodeValue()).append("\n");
+		        }
+		        
+		    	if(maxLine != 0){
+		    		if(lineCountProgress == maxLine) {
+		    			break;
+		    		}
+		    	}
+		    }
+//		    System.out.println(inputTemp.toString());
+		    result = langService.LanguageIDWFS(jobID, inputTemp.toString(), mode, getResultFlag);
+		
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+
+
+	/*** End Add max Line 2021-05-11 ***/
+	
 	public String GetLanguageIDFromFileWFS(String jobID, String inputFilePath, String mode, boolean getResultFlag) {
 		
 		com.omniscien.lslanguageid.model.LanguageidModel languaeidModel = new com.omniscien.lslanguageid.model.LanguageidModel();
