@@ -144,7 +144,7 @@ public class ServiceLanguageidImp implements ServiceLanguageid{
 		}else {
 			if(GetResultFlag) {
 				result = languageidModel.getResult();
-				output = "{\"result\":\""+result+"\",\"dominantlanguage\":\""+dominantlanguage+"\",\"dominantlanguagepercent\":\""+dominantLangPercent+"\",\"secondarylanguage\":\""+secondarylanguage+"\",\"secondarylangpercent\":\""+secondaryLangPercent+"\",\"errorstatus\":\""+errorStatus+"\"}";
+				output = "{\"detail\":\""+result+"\",\"dominantlanguage\":\""+dominantlanguage+"\",\"dominantlanguagepercent\":\""+dominantLangPercent+"\",\"secondarylanguage\":\""+secondarylanguage+"\",\"secondarylangpercent\":\""+secondaryLangPercent+"\",\"errorstatus\":\""+errorStatus+"\"}";
 				
 			}else {
 				output = "{\"dominantlanguage\":\""+dominantlanguage+"\",\"dominantlanguagepercent\":\""+dominantLangPercent+"\",\"secondarylanguage\":\""+secondarylanguage+"\",\"secondarylangpercent\":\""+secondaryLangPercent+"\",\"errorstatus\":\""+errorStatus+"\"}";
