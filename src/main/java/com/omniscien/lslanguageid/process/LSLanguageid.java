@@ -58,7 +58,7 @@ import com.omniscien.lslanguageid.util.Constant;
 public class LSLanguageid {
 	
 	private ReadProp rp= null;
-	private Log4J oLog = null;
+	//private Log4J oLog = null;
 	private ServletContextMock app = new ServletContextMock();
 	private String pageName = "LSLanguageID";
 	
@@ -110,6 +110,7 @@ public class LSLanguageid {
 		rp = new ReadProp(filePath);
 		langService = new ServiceLanguageidImp();
 		langService.propSettingService(filePath);
+		/*** Start comment 2021-05-19 
 		if (oLog == null) {
 			try {
 				oLog = new Log4J();
@@ -124,6 +125,7 @@ public class LSLanguageid {
 			oLog.log4JPropertyFile = rp.getProp(Constant.LOG_4J);
 		
 		}
+		*** End comment 2021-05-19 ***/ 
 	}
 
 
@@ -259,7 +261,8 @@ public class LSLanguageid {
 		com.omniscien.lslanguageid.model.LanguageidModel languaeidModel = new com.omniscien.lslanguageid.model.LanguageidModel();
 		
 		String tempUUID = generateID();
-		oLog.WriteLog(pageName,tempUUID , "Get Language ID From File", "Start",  false);
+		
+//		oLog.WriteLog(pageName,tempUUID , "Get Language ID From File", "Start",  false);
 		//Initial Variable
 		String result = null;
 		String outputProcessTemp = null;
@@ -270,7 +273,7 @@ public class LSLanguageid {
 		
 		//Get file type
 		String fileType = getFileType(filePath).toUpperCase();
-		oLog.WriteLog(pageName,tempUUID , "Get file Type as "+fileType,"", false);
+//		oLog.WriteLog(pageName,tempUUID , "Get file Type as "+fileType,"", false);
 		
 		//Prepare Input String 
 		if (!fileType.equals("TXT")){
@@ -294,8 +297,8 @@ public class LSLanguageid {
 			boolean checkSupport = new File(outputProcessTemp).exists();
 			if(!checkSupport) {
 				System.out.println("Can not support file type: *."+fileType.toLowerCase());
-				oLog.WriteLog(pageName,tempUUID , "Wernning Get Language ID From File", "Can not support file type: *."+fileType.toLowerCase(),  false);
-				oLog.WriteLog(pageName,tempUUID ,  "Get Language ID From File", "End AbNormally", false);
+//				oLog.WriteLog(pageName,tempUUID , "Wernning Get Language ID From File", "Can not support file type: *."+fileType.toLowerCase(),  false);
+//				oLog.WriteLog(pageName,tempUUID ,  "Get Language ID From File", "End AbNormally", false);
 				return "Can not support file type: *."+fileType.toLowerCase();
 			}
 			inputString = new FileReader(outputProcessTemp);
@@ -340,7 +343,7 @@ public class LSLanguageid {
 			deleteFile(outputProcessTemp);
 		}
 		
-		oLog.WriteLog(pageName,tempUUID , "Get Language ID From File", "End Normally",  false);
+//		oLog.WriteLog(pageName,tempUUID , "Get Language ID From File", "End Normally",  false);
 		//Return result;
 		return result;
 		
@@ -401,7 +404,7 @@ public class LSLanguageid {
 		com.omniscien.lslanguageid.model.LanguageidModel languaeidModel = new com.omniscien.lslanguageid.model.LanguageidModel();
 		
 		String tempUUID = generateID();
-		oLog.WriteLog(pageName,tempUUID , "Get Language ID From File", "Start",  false);
+//		oLog.WriteLog(pageName,tempUUID , "Get Language ID From File", "Start",  false);
 		
 		//Initial variable;
 		String result = new String();
@@ -417,7 +420,7 @@ public class LSLanguageid {
 		
 		//Get file type
 		String fileType = getFileType(filePath).toUpperCase();
-		oLog.WriteLog(pageName,tempUUID , "Get file Type as "+fileType,"", false);
+//		oLog.WriteLog(pageName,tempUUID , "Get file Type as "+fileType,"", false);
 		
 		if (!fileType.equals("TXT")){
 			inputTypeTXT = false;
@@ -439,8 +442,8 @@ public class LSLanguageid {
 			boolean checkSupport = new File(outputProcessTemp).exists();
 			if(!checkSupport) {
 				System.out.println("Can not support file type: *."+fileType.toLowerCase());
-				oLog.WriteLog(pageName,tempUUID , "Wernning Get Language ID From File", "Can not support file type: *."+fileType.toLowerCase(),  false);
-				oLog.WriteLog(pageName,tempUUID ,  "Get Language ID From File", "End AbNormally", false);
+//				oLog.WriteLog(pageName,tempUUID , "Wernning Get Language ID From File", "Can not support file type: *."+fileType.toLowerCase(),  false);
+//				oLog.WriteLog(pageName,tempUUID ,  "Get Language ID From File", "End AbNormally", false);
 				return "Can not support file type: *."+fileType.toLowerCase();
 			}
 			inputString = new FileReader(outputProcessTemp);
@@ -492,7 +495,7 @@ public class LSLanguageid {
 			deleteFile(outputProcessTemp);
 		}
 		
-		oLog.WriteLog(pageName,tempUUID , "Get Language ID From File", "End Normally",  false);
+//		oLog.WriteLog(pageName,tempUUID , "Get Language ID From File", "End Normally",  false);
 		
 		//return result
 		return result;
@@ -511,7 +514,7 @@ public class LSLanguageid {
 			tempUUID = idStr;
 		}
 		
-		oLog.WriteLog(pageName,tempUUID , "Get Language ID Line By Line", "Start",  false);
+//		oLog.WriteLog(pageName,tempUUID , "Get Language ID Line By Line", "Start",  false);
 		
 		String resultStatus = null;
 		String result = null;
@@ -525,7 +528,7 @@ public class LSLanguageid {
 		mode = mode.toLowerCase();
 		
 		String fileType = getFileType(inputFilePath).toUpperCase();
-		oLog.WriteLog(pageName,tempUUID , "Get file Type as "+fileType,"", false);
+//		oLog.WriteLog(pageName,tempUUID , "Get file Type as "+fileType,"", false);
 		if (!fileType.equals("TXT")){
 			inputTypeTXT = false;
 			//Prepare output file part
@@ -546,8 +549,8 @@ public class LSLanguageid {
 			boolean checkSupport = new File(outputProcessTemp).exists();
 			if(!checkSupport) {
 				System.out.println("Can not support file type: *."+fileType.toLowerCase());
-				oLog.WriteLog(pageName,tempUUID , "Wernning Get Language ID Line By Line", "Cannot support file type: *."+fileType.toLowerCase(),  false);
-				oLog.WriteLog(pageName,tempUUID ,  "Get Language ID Line By Line", "End AbNormally", false);
+//				oLog.WriteLog(pageName,tempUUID , "Wernning Get Language ID Line By Line", "Cannot support file type: *."+fileType.toLowerCase(),  false);
+//				oLog.WriteLog(pageName,tempUUID ,  "Get Language ID Line By Line", "End AbNormally", false);
 				return "Can not support file type: *."+fileType.toLowerCase();
 			}
 			readerBuf = new BufferedReader(new FileReader(outputProcessTemp));
@@ -949,7 +952,7 @@ public class LSLanguageid {
 			deleteFile(outputProcessTemp);
 		}
 		
-		oLog.WriteLog(pageName,tempUUID , "Get Language ID Line By Line", "End Normally",  false);
+//		oLog.WriteLog(pageName,tempUUID , "Get Language ID Line By Line", "End Normally",  false);
 		
 		return resultStatus;
 	}
@@ -1344,11 +1347,11 @@ public class LSLanguageid {
 		
 		String jobID = generateID();
 		boolean checkSupport = false;
-		oLog.WriteLog(pageName,jobID , "Get Language ID String", "Start",  false);
+//		oLog.WriteLog(pageName,jobID , "Get Language ID String", "Start",  false);
 		
 		//Get file type
 		String fileType = getFileType(inputFilePath).toLowerCase();
-		oLog.WriteLog(pageName,jobID , "Get file Type as "+fileType,"", false);
+//		oLog.WriteLog(pageName,jobID , "Get file Type as "+fileType,"", false);
 		
 		//Check support
 		String[] filesSupportArr = {"msg", "html", "htm", "txt", "srt", "ttml"};
@@ -1492,11 +1495,11 @@ public class LSLanguageid {
 		
 		String jobID = generateID();
 		boolean checkSupport = false;
-		oLog.WriteLog(pageName,jobID , "Get Language ID String", "Start",  false);
+//		oLog.WriteLog(pageName,jobID , "Get Language ID String", "Start",  false);
 		
 		//Get file type
 		String fileType = getFileType(inputFilePath).toLowerCase();
-		oLog.WriteLog(pageName,jobID , "Get file Type as "+fileType,"", false);
+//		oLog.WriteLog(pageName,jobID , "Get file Type as "+fileType,"", false);
 		
 		//Check support
 		String[] filesSupportArr = {"doc", "docx","xls","xlsx", "ppt", "pptx", "msg","pdf", "html", "htm", "txt", "srt", "ttml"};
@@ -1686,7 +1689,7 @@ public class LSLanguageid {
 		
 		com.omniscien.lslanguageid.model.LanguageidModel languaeidModel = new com.omniscien.lslanguageid.model.LanguageidModel();
 		
-		oLog.WriteLog(pageName,jobID , "Get Language ID for WFS From File", "Start",  false);
+//		oLog.WriteLog(pageName,jobID , "Get Language ID for WFS From File", "Start",  false);
 		
 		//Initial variable;
 		String result = new String();
@@ -1703,7 +1706,7 @@ public class LSLanguageid {
 		
 		//Get file type
 		String fileType = getFileType(inputFilePath).toUpperCase();
-		oLog.WriteLog(pageName,jobID , "Get file Type as "+fileType,"", false);
+//		oLog.WriteLog(pageName,jobID , "Get file Type as "+fileType,"", false);
 		
 		if (!fileType.equals("TXT")){
 			inputTypeTXT = false;
@@ -1744,7 +1747,7 @@ public class LSLanguageid {
 			deleteFile(outputProcessTemp);
 		}
 		
-		oLog.WriteLog(pageName,jobID , "Get Language ID for WFS From File", "End Normally",  false);
+//		oLog.WriteLog(pageName,jobID , "Get Language ID for WFS From File", "End Normally",  false);
 		return result;
 	}
 	
