@@ -20,6 +20,8 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 //import java.util.ArrayList;
@@ -83,6 +85,22 @@ public class LSLanguageid {
 	
 	private ServiceLanguageidImp langService = new ServiceLanguageidImp();
 	
+	private long begintime = 0;
+	private long endtime = 0;
+	private long totaltime =0;
+	private String startTimeStr = "";
+	private String endTimeStr = "";
+	
+	
+	
+	public ReadProp getRp() {
+		return rp;
+	}
+
+	public void setRp(ReadProp rp) {
+		this.rp = rp;
+	}
+
 	/*** Constructor ***/
 	public LSLanguageid() {
 		
@@ -1299,6 +1317,10 @@ public class LSLanguageid {
 	public String GetLanguageIDFromTextWFS(String inputFilePath, int InputFormat, int maxLine, int AnalysisType ,  int OutputMode) {
 		com.omniscien.lslanguageid.model.LanguageidModel languaeidModel = new com.omniscien.lslanguageid.model.LanguageidModel();
 		
+		//Start Time
+		begintime = System.currentTimeMillis();
+		startTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss:SSS")).toString();
+		
 		boolean getResultFlag = false;
 		if(OutputMode == 1) {
 			getResultFlag = false;
@@ -1312,8 +1334,9 @@ public class LSLanguageid {
 		}else if (AnalysisType == 2){
 			mode = "cld3";
 		}else {
-			return "{\"errorstatus\":\"yes\", \"errordatail\":\"Mistake OutputMode input.\",\"dominantlanguage\":\"\",\"dominantlanguagepercent\":\"\",\"secondarylanguage\":\"\",\"secondarylangpercent\":\"\"}";
 			
+			String result = getErrorJSON(10047);
+			return result;
 		}
 		
 		// Initial variable;
@@ -1338,7 +1361,8 @@ public class LSLanguageid {
 		}
 		
 		if (!checkSupport) {
-			return "{\"errorstatus\":\"yes\", \"errordatail\":\"not support "+fileType+" file type\",\"dominantlanguage\":\"\",\"dominantlanguagepercent\":\"\",\"secondarylanguage\":\"\",\"secondarylangpercent\":\"\"}";
+			String resultReturn = getErrorJSON(10100);
+			return resultReturn;
 		}
 		
 		if(InputFormat != 4) {
@@ -1368,7 +1392,7 @@ public class LSLanguageid {
 							"TXT");
 					checkSupport = new File(outputProcessTemp).exists();
 					if (!checkSupport) {
-						return "{\"errorstatus\":\"yes\",\"dominantlanguage\":\"\",\"dominantlanguagepercent\":\"\",\"secondarylanguage\":\"\",\"secondarylangpercent\":\"\"}";
+						return getErrorJSON(10100);
 					}
 
 				} catch (Exception e) {
@@ -1426,15 +1450,25 @@ public class LSLanguageid {
 			}else if(fileType.equals("ttml")) {
 				result = GetLanguageIDTTMLFile(inputFilePath, mode,  maxLine, OutputMode);
 			}else {
-				return "{\"errorstatus\":\"yes\", \"errordatail\":\"not support "+fileType+" file type\",\"dominantlanguage\":\"\",\"dominantlanguagepercent\":\"\",\"secondarylanguage\":\"\",\"secondarylangpercent\":\"\"}";
+				return getErrorJSON(10100);
 				
 			}
 		}
+
+		
+		result = prepareFinalResult(result);
+		
 		return result;
 	}
 	
+
+
 	public String GetLanguageIDFromFileWFS(String inputFilePath, int maxLine, int AnalysisType ,  int OutputMode, String OutputFile) {
 		com.omniscien.lslanguageid.model.LanguageidModel languaeidModel = new com.omniscien.lslanguageid.model.LanguageidModel();
+		
+		//Start Time
+		begintime = System.currentTimeMillis();
+		startTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss:SSS")).toString();
 		
 		boolean getResultFlag = false;
 		if(OutputMode == 1) {
@@ -1449,8 +1483,8 @@ public class LSLanguageid {
 		}else if (AnalysisType == 2){
 			mode = "cld3";
 		}else {
-			return "{\"errorstatus\":\"yes\", \"errordatail\":\"Mistake OutputMode input.\",\"dominantlanguage\":\"\",\"dominantlanguagepercent\":\"\",\"secondarylanguage\":\"\",\"secondarylangpercent\":\"\"}";
-			
+			String result = getErrorJSON(10047);
+			return result;
 		}
 		
 		// Initial variable;
@@ -1475,7 +1509,8 @@ public class LSLanguageid {
 		}
 		
 		if (!checkSupport) {
-			return "{\"errorstatus\":\"yes\", \"errordatail\":\"not support "+fileType+" file type\",\"dominantlanguage\":\"\",\"dominantlanguagepercent\":\"\",\"secondarylanguage\":\"\",\"secondarylangpercent\":\"\"}";
+			String resultReturn = getErrorJSON(10100);
+			return resultReturn;
 		}
 		
 		if(fileType.equals("doc") ||
@@ -1515,7 +1550,8 @@ public class LSLanguageid {
 							"TXT");
 					checkSupport = new File(outputProcessTemp).exists();
 					if (!checkSupport) {
-						return "{\"errorstatus\":\"yes\",\"dominantlanguage\":\"\",\"dominantlanguagepercent\":\"\",\"secondarylanguage\":\"\",\"secondarylangpercent\":\"\"}";
+						String resultReturn = getErrorJSON(10100);
+						return resultReturn;	
 					}
 
 				} catch (Exception e) {
@@ -1573,10 +1609,13 @@ public class LSLanguageid {
 			}else if(fileType.equals("ttml")) {
 				result = GetLanguageIDTTMLFile(inputFilePath, mode,  maxLine, OutputMode);
 			}else {
-				return "{\"errorstatus\":\"yes\", \"errordatail\":\"not support "+fileType+" file type\",\"dominantlanguage\":\"\",\"dominantlanguagepercent\":\"\",\"secondarylanguage\":\"\",\"secondarylangpercent\":\"\"}";
-				
+				String resultReturn = getErrorJSON(10100);
+				return resultReturn;
 			}
 		}
+		
+		result = prepareFinalResult(result);
+		
 		if(OutputFile != null) {
 			File file = new File(OutputFile);
 			if(file.exists()) {
@@ -1584,6 +1623,8 @@ public class LSLanguageid {
 			}
 			writeFile(result, result, OutputFile);
 		}
+		
+		
 		return result;
 	}
 	
@@ -1705,6 +1746,40 @@ public class LSLanguageid {
 		
 		oLog.WriteLog(pageName,jobID , "Get Language ID for WFS From File", "End Normally",  false);
 		return result;
+	}
+	
+	private String getErrorJSON(int errorNo) {
+		endtime = System.currentTimeMillis();
+		totaltime = endtime-begintime;
+		endTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss:SSS")).toString();
+		
+		String ErrorMSG = com.omniscien.lib.util.Message.getMessage(errorNo);
+		String result = "{\"result\":"
+				+ "{\"dominantlanguage\":\"\",\"dominantlanguagepercent\":\"\",\"secondarylanguage\":\"\",\"secondarylangpercent\":\"\"},"
+				+ "\"duration\":\""+totaltime+"\","
+				+ "\"startdate\":\""+startTimeStr+"\","
+				+ "\"errortext\":\""+ErrorMSG+"\","
+				+ "\"errorno\":\""+errorNo+"\","
+				+ "\"enddate\":\""+endTimeStr+"\","
+				+ "\"requestid\":\"\"}";
+		
+		return result;
+	}
+	
+	private String prepareFinalResult(String result) {
+		endtime = System.currentTimeMillis();
+		totaltime = endtime-begintime;
+		endTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss:SSS")).toString();
+		String finalResult = "{\"result\":"
+				+result+","
+						+ ""
+						+ "\"duration\":\""+totaltime+"\","
+						+ "\"startdate\":\""+startTimeStr+"\","
+						+ "\"errortext\":\"\","
+						+ "\"errorno\":\"\","
+						+ "\"enddate\":\""+endTimeStr+"\","
+						+ "\"requestid\":\"\"}";
+		return finalResult;
 	}
 	
 }
